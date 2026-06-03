@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Family Contract</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           var(--hub-bg, #f9fafb);
+      --card:         var(--hub-surface, #ffffff);
+      --border:       var(--hub-border, #e5e7eb);
+      --text:         var(--hub-text, #111827);
+      --muted:        var(--hub-text-muted, #6b7280);
+      --accent:       var(--hub-primary, #111827);
+      --accent-fg:    var(--hub-primary-fg, #ffffff);
+      --accent-hover: var(--hub-primary-hover, #374151);
+      --green: #16a34a; --green-light: #dcfce7;
+      --amber: #d97706; --amber-light: #fef3c7;
+      --blue:  #2563eb; --blue-light:  #dbeafe;
+      --red:   #dc2626; --red-light:   #fee2e2;
+      --purple: #7c3aed; --purple-light: #ede9fe;
+      --radius: var(--hub-radius, 0.5rem);
+      --shadow: 0 1px 3px rgba(0,0,0,.07);
+    }
+
+    body {
+      font-family: var(--hub-font, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: var(--hub-font-size, 15px);
+      line-height: 1.5;
+    }
+
+    .app { max-width: 620px; margin: 0 auto; padding: 16px; }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding: 16px 20px;
+      background: var(--accent);
+      border-radius: var(--radius);
+      color: white;
+    }
+    header h1 { font-size: 1.2rem; font-weight: 700; }
+    header .sub { font-size: 0.8rem; opacity: .75; margin-top: 2px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity .15s;
+    }
+    .btn:disabled { opacity: .5; cursor: default; }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover:not(:disabled) { opacity: .88; }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1.5px solid var(--border); }
+    .btn-ghost:hover:not(:disabled) { border-color: var(--text); color: var(--text); }
+    .btn-danger { background: var(--red); color: white; }
+    .btn-danger:hover:not(:disabled) { opacity: .88; }
+    .btn-success { background: var(--green); color: white; }
+    .btn-success:hover:not(:disabled) { opacity: .88; }
+    .btn-sm { padding: 5px 12px; font-size: 0.8rem; }
+    .btn-header { background: rgba(255,255,255,.15); color: white; border: 1.5px solid rgba(255,255,255,.3); }
+    .btn-header:hover:not(:disabled) { background: rgba(255,255,255,.25); }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--border);
+      border-radius: 10px;
+      padding: 3px;
+      margin-bottom: 16px;
+    }
+    .tab {
+      flex: 1;
+      padding: 7px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      background: transparent;
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .tab.active { background: white; color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+    .tab-badge {
+      background: var(--amber);
+      color: white;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 1px 6px;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .contract-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: var(--shadow);
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .contract-card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+    .contract-card.needs-action { border-color: var(--amber); background: #fffbeb; }
+
+    .contract-main { flex: 1; min-width: 0; }
+    .contract-title { font-weight: 600; font-size: 1rem; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .contract-meta { font-size: 0.82rem; color: var(--muted); display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+    .contract-sub { font-size: 0.78rem; color: var(--muted); }
+
+    .contract-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+    .action-needed { font-size: 0.72rem; font-weight: 600; color: var(--amber); text-align: right; }
+
+    .status-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .status-draft        { background: var(--border); color: var(--muted); }
+    .status-active       { background: var(--blue-light); color: var(--blue); }
+    .status-child-signed { background: var(--amber-light); color: var(--amber); }
+    .status-completed    { background: var(--green-light); color: var(--green); }
+    .status-voided       { background: var(--red-light); color: var(--red); }
+
+    .avatar {
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+    .avatar.sm { width: 24px; height: 24px; font-size: 0.7rem; }
+    .avatar.xs { width: 18px; height: 18px; font-size: 0.62rem; }
+
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.45);
+      display: flex; align-items: flex-end; justify-content: center;
+      z-index: 100;
+    }
+    @media (min-width: 480px) {
+      .modal-backdrop { align-items: center; padding: 20px; }
+    }
+    .modal {
+      background: white;
+      border-radius: var(--radius) var(--radius) 0 0;
+      width: 100%;
+      max-width: 540px;
+      padding: 24px;
+      max-height: 92vh;
+      overflow-y: auto;
+    }
+    @media (min-width: 480px) { .modal { border-radius: var(--radius); } }
+    .modal h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; }
+    .modal h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; font-size: 0.72rem; }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .15s;
+      background: white;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus { border-color: var(--accent); }
+    .form-group textarea { resize: vertical; min-height: 72px; }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .modal-actions .btn { flex: 1; justify-content: center; min-width: 100px; }
+
+    /* Step list in contract detail */
+    .step-list { margin: 12px 0; }
+    .step-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .step-item.completed { border-color: var(--green); background: var(--green-light); }
+    .step-item.current { border-color: var(--blue); background: var(--blue-light); }
+    .step-item.locked { opacity: .5; }
+    .step-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+    .step-body { flex: 1; min-width: 0; }
+    .step-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 3px; }
+    .step-type-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+    .step-content { font-size: 0.85rem; color: var(--muted); white-space: pre-wrap; word-break: break-word; }
+    .step-check { font-size: 0.75rem; font-weight: 600; color: var(--green); margin-top: 4px; }
+
+    /* Step builder (draft mode) */
+    .step-builder {
+      border: 1.5px dashed var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+    .step-builder h4 { margin-bottom: 12px; }
+    .step-builder .row { display: flex; gap: 8px; margin-top: 10px; }
+    .step-builder .row > * { flex: 1; }
+
+    .draft-steps { margin: 12px 0; }
+    .draft-step-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: white;
+    }
+    .draft-step-item .step-icon { font-size: 1rem; }
+    .draft-step-remove {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 1rem;
+      padding: 0 4px;
+      flex-shrink: 0;
+      margin-left: auto;
+    }
+    .draft-step-remove:hover { color: var(--red); }
+
+    /* Child walkthrough */
+    .walkthrough-progress {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 16px;
+    }
+    .progress-dot {
+      height: 6px;
+      flex: 1;
+      border-radius: 3px;
+      background: var(--border);
+      transition: background .2s;
+    }
+    .progress-dot.done { background: var(--green); }
+    .progress-dot.current { background: var(--blue); }
+
+    .walkthrough-step {
+      border: 1.5px solid var(--blue);
+      border-radius: var(--radius);
+      padding: 16px;
+      background: var(--blue-light);
+      margin-bottom: 14px;
+    }
+    .walkthrough-step .step-title { font-size: 1rem; margin-bottom: 8px; }
+    .walkthrough-step .step-body-text {
+      font-size: 0.9rem;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-bottom: 12px;
+    }
+    .walkthrough-step a { color: var(--blue); font-weight: 600; }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .checkbox-row input[type=checkbox] { width: 20px; height: 20px; cursor: pointer; accent-color: var(--green); }
+
+    .commit-input {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      margin-top: 8px;
+      outline: none;
+      resize: vertical;
+      min-height: 64px;
+    }
+    .commit-input:focus { border-color: var(--accent); }
+
+    /* Signature block */
+    .sig-block {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+    .sig-block .sig-label { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+    .sig-block .sig-name { font-weight: 600; font-size: 0.95rem; }
+    .sig-block .sig-date { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+    .sig-block.pending { border-style: dashed; color: var(--muted); }
+    .sig-block.signed { border-color: var(--green); background: var(--green-light); }
+
+    .detail-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+    .detail-section { border-top: 1px solid var(--border); padding-top: 14px; margin: 14px 0 0; }
+
+    .empty { text-align: center; padding: 36px 16px; color: var(--muted); font-size: 0.9rem; }
+    .loading { text-align: center; padding: 40px; color: var(--muted); }
+  </style>
+  <base href="/run/family-contract/" />
+</head>
+<body>
+<div class="app">
+  <div id="root"><div class="loading">Loading…</div></div>
+</div>
+
+<script type="module">
+import { memberColor, initial, esc, isAdult, hubConfirm } from "/hub-sdk.js";
+import { STEP_TYPES, STATUS_INFO, stepsComplete, nextIncompleteStep, formatDate } from "./logic.js";
+
+const CONTEXT = window.__CONTEXT_URL ?? "";
+const DB      = window.__DB_URL      ?? "";
+const APP_ID  = window.__APP_ID      ?? "family-contract";
+const ME      = window.__CURRENT_MEMBER ?? null;
+
+let members             = [];
+let contracts           = [];
+let currentContractSteps = []; // steps for the currently-open contract modal
+let activeTab           = "active"; // "active" | "all"
+
+// ─── DB ───────────────────────────────────────────────────────────────────────
+async function db(sql, params = []) {
+  if (!DB) return { rows: [] };
+  const res = await fetch(DB, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sql, params }),
+  });
+  return res.json();
+}
+
+// ─── Load ─────────────────────────────────────────────────────────────────────
+async function loadMembers() {
+  if (!CONTEXT) {
+    members = [
+      { id: "demo-p1", name: "Alex",   role: "adult" },
+      { id: "demo-p2", name: "Sam",    role: "adult" },
+      { id: "demo-c1", name: "Jordan", role: "child" },
+      { id: "demo-c2", name: "Casey",  role: "child" },
+    ];
+    return;
+  }
+  try {
+    const res = await fetch(`${CONTEXT}?keys=family.members`);
+    members = ((await res.json())["family.members"]) ?? [];
+  } catch { members = []; }
+}
+
+async function loadContracts() {
+  if (!DB || !ME) return;
+  const meIsAdult = isAdult(ME);
+  let rows;
+  if (meIsAdult) {
+    ({ rows } = await db(`SELECT * FROM contracts ORDER BY created_at DESC`));
+  } else {
+    ({ rows } = await db(`SELECT * FROM contracts WHERE child_id = ? ORDER BY created_at DESC`, [ME.id]));
+  }
+  contracts = rows ?? [];
+}
+
+async function loadSteps(contractId) {
+  if (!DB) return [];
+  const { rows } = await db(
+    `SELECT * FROM contract_steps WHERE contract_id = ? ORDER BY position ASC`,
+    [contractId]
+  );
+  return rows ?? [];
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function memberName(id) { return members.find(m => m.id === id)?.name ?? "Someone"; }
+function mc(id) { return memberColor(id, members); }
+function children() { return members.filter(m => !isAdult(m)); }
+
+function statusHtml(status) {
+  const { cls, label } = STATUS_INFO[status] ?? STATUS_INFO.draft;
+  return `<span class="status-badge ${cls}">${esc(label)}</span>`;
+}
+
+function stepIcon(type) { return STEP_TYPES[type]?.icon ?? "📋"; }
+function stepTypeLabel(type) { return STEP_TYPES[type]?.label ?? type; }
+
+// ─── Notifications ─────────────────────────────────────────────────────────────
+async function notify(title, body) {
+  await fetch("/api/notifications/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title, body, url: `/run/${APP_ID}` }),
+  }).catch(() => {});
+}
+
+// ─── Activity ─────────────────────────────────────────────────────────────────
+async function logActivity(contractId, action, detail = "") {
+  await db(
+    `INSERT INTO activity (id, contract_id, actor_id, action, detail, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
+    [crypto.randomUUID(), contractId, ME?.id ?? "system", action, detail, new Date().toISOString()]
+  );
+}
+
+// ─── Modal ────────────────────────────────────────────────────────────────────
+let modalEl = null;
+function openModal(html) {
+  closeModal();
+  modalEl = document.createElement("div");
+  modalEl.className = "modal-backdrop";
+  modalEl.innerHTML = `<div class="modal">${html}</div>`;
+  modalEl.addEventListener("click", e => { if (e.target === modalEl) closeModal(); });
+  document.body.appendChild(modalEl);
+}
+function closeModal() { modalEl?.remove(); modalEl = null; }
+
+// ─── New contract form ─────────────────────────────────────────────────────────
+function openNewContractForm() {
+  const childOptions = children().map(m =>
+    `<option value="${esc(m.id)}">${esc(m.name)}</option>`
+  ).join("");
+
+  if (!childOptions) {
+    openModal(`
+      <h3>New Contract</h3>
+      <p style="color:var(--muted);font-size:.9rem">No children are set up in your family yet.</p>
+      <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Close</button></div>
+    `);
+    return;
+  }
+
+  openModal(`
+    <h3>New Contract</h3>
+    <div class="form-group">
+      <label>Title</label>
+      <input id="f-title" type="text" placeholder="Getting a Dog, Learning Guitar…" autofocus />
+    </div>
+    <div class="form-group">
+      <label>Description <span style="font-weight:400;text-transform:none">(optional)</span></label>
+      <textarea id="f-desc" rows="2" placeholder="Why this contract exists, what it covers…"></textarea>
+    </div>
+    <div class="form-group">
+      <label>For</label>
+      <select id="f-child">${childOptions}</select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitNewContract()">Create Draft</button>
+    </div>
+  `);
+}
+
+window.submitNewContract = async function() {
+  const title   = document.getElementById("f-title").value.trim();
+  const desc    = document.getElementById("f-desc").value.trim();
+  const childId = document.getElementById("f-child").value;
+  if (!title) { document.getElementById("f-title").focus(); return; }
+
+  const id  = crypto.randomUUID();
+  const now = new Date().toISOString();
+  const newContract = { id, title, description: desc, child_id: childId, created_by: ME.id, status: "draft", created_at: now, updated_at: now };
+
+  // Await the INSERT so steps can reference this contract_id via FK
+  await db(
+    `INSERT INTO contracts (id, title, description, child_id, created_by, status, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, 'draft', ?, ?)`,
+    [id, title, desc, childId, ME.id, now, now]
+  );
+  contracts.unshift(newContract);
+  closeModal();
+  render();
+  logActivity(id, "created", `${ME.name} created a draft contract: "${title}"`);
+  openContractDetail(newContract);
+};
+
+// ─── Contract detail modal ────────────────────────────────────────────────────
+async function openContractDetail(contract) {
+  const steps = await loadSteps(contract.id);
+
+  if (contract.status === "draft" && isAdult(ME)) {
+    openDraftEditor(contract, steps);
+  } else if (!isAdult(ME) && (contract.status === "active")) {
+    openChildWalkthrough(contract, steps);
+  } else {
+    openContractView(contract, steps);
+  }
+}
+
+// ─── Draft editor (parent) ───────────────────────────────────────────────────
+function openDraftEditor(contract, steps) {
+  currentContractSteps = steps;
+  const child = members.find(m => m.id === contract.child_id);
+  const stepTypeOptions = Object.entries(STEP_TYPES).map(([k, v]) =>
+    `<option value="${k}">${v.icon} ${esc(v.label)}</option>`
+  ).join("");
+
+  const stepsHtml = steps.length === 0
+    ? `<p style="color:var(--muted);font-size:.85rem;margin-bottom:8px">No steps yet. Add at least one below.</p>`
+    : steps.map((s, i) => `
+      <div class="draft-step-item" id="dsi-${esc(s.id)}">
+        <span class="step-icon">${stepIcon(s.type)}</span>
+        <div class="step-body">
+          <div class="step-type-label">${esc(stepTypeLabel(s.type))}</div>
+          <div class="step-title">${esc(s.title)}</div>
+          ${s.body ? `<div class="step-content" style="margin-top:3px">${esc(s.body)}</div>` : ""}
+        </div>
+        <button class="draft-step-remove" onclick="removeStep('${esc(contract.id)}','${esc(s.id)}')" title="Remove">✕</button>
+      </div>
+    `).join("");
+
+  const canActivate = steps.length > 0;
+
+  openModal(`
+    <h3>📋 ${esc(contract.title)}</h3>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      ${statusHtml(contract.status)}
+      <span style="font-size:.82rem;color:var(--muted)">For ${esc(child?.name ?? "?")}</span>
+    </div>
+
+    ${contract.description ? `<p style="font-size:.88rem;color:var(--muted);margin-bottom:12px">${esc(contract.description)}</p>` : ""}
+
+    <h4>Steps</h4>
+    <div id="draft-steps-list">${stepsHtml}</div>
+
+    <div class="step-builder">
+      <h4>Add a Step</h4>
+      <div class="form-group" style="margin-bottom:10px">
+        <label>Type</label>
+        <select id="ns-type" onchange="updateStepBuilder()">${stepTypeOptions}</select>
+      </div>
+      <div class="form-group" style="margin-bottom:10px">
+        <label>Title</label>
+        <input id="ns-title" type="text" placeholder="Step title…" />
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label id="ns-body-label">Content</label>
+        <textarea id="ns-body" rows="3" placeholder=""></textarea>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:10px">
+        <button class="btn btn-primary btn-sm" onclick="addStep('${esc(contract.id)}', ${steps.length})">+ Add Step</button>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+      ${canActivate
+        ? `<button class="btn btn-success" onclick="activateContract('${esc(contract.id)}')">Send to ${esc(child?.name ?? "Child")}</button>`
+        : `<button class="btn btn-success" disabled>Add steps to send</button>`
+      }
+    </div>
+    <div style="margin-top:10px;text-align:center">
+      <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:var(--red)" onclick="voidContract('${esc(contract.id)}')">Void Draft</button>
+    </div>
+  `);
+
+  updateStepBuilder();
+}
+
+window.updateStepBuilder = function() {
+  const type = document.getElementById("ns-type")?.value;
+  if (!type) return;
+  const info = STEP_TYPES[type];
+  const labelEl = document.getElementById("ns-body-label");
+  const bodyEl  = document.getElementById("ns-body");
+  if (labelEl) labelEl.textContent = info.bodyLabel;
+  if (bodyEl)  bodyEl.placeholder  = info.bodyPlaceholder;
+};
+
+window.addStep = function(contractId, currentCount) {
+  const type  = document.getElementById("ns-type").value;
+  const title = document.getElementById("ns-title").value.trim();
+  const body  = document.getElementById("ns-body").value.trim();
+  if (!title) { document.getElementById("ns-title").focus(); return; }
+
+  const id = crypto.randomUUID();
+  currentContractSteps = [...currentContractSteps, { id, contract_id: contractId, position: currentCount, type, title, body, completed_at: null, completed_by: null, response: null }];
+  const contract = contracts.find(c => c.id === contractId);
+  if (contract) openDraftEditor(contract, currentContractSteps);
+  db(`INSERT INTO contract_steps (id, contract_id, position, type, title, body) VALUES (?, ?, ?, ?, ?, ?)`,
+    [id, contractId, currentCount, type, title, body]);
+};
+
+window.removeStep = async function(contractId, stepId) {
+  if (!await hubConfirm({ message: "Remove this step?", confirmLabel: "Remove", destructive: true })) return;
+  currentContractSteps = currentContractSteps.filter(s => s.id !== stepId);
+  const contract = contracts.find(c => c.id === contractId);
+  if (contract) openDraftEditor(contract, currentContractSteps);
+  db(`DELETE FROM contract_steps WHERE id = ? AND contract_id = ?`, [stepId, contractId]);
+};
+
+window.activateContract = async function(contractId) {
+  const contract = contracts.find(c => c.id === contractId);
+  if (!contract) return;
+  const child = members.find(m => m.id === contract.child_id);
+  if (!await hubConfirm({ message: `Send this contract to ${child?.name ?? "your child"}?`, confirmLabel: "Send" })) return;
+
+  const now = new Date().toISOString();
+  const idx = contracts.findIndex(c => c.id === contractId);
+  if (idx >= 0) contracts[idx] = { ...contracts[idx], status: "active", updated_at: now };
+  closeModal();
+  render();
+  db(`UPDATE contracts SET status = 'active', updated_at = ? WHERE id = ?`, [now, contractId]);
+  logActivity(contractId, "activated", `${ME.name} sent the contract to ${child?.name}`);
+  notify(`New contract from ${ME.name}`, `"${contract.title}" — open Family Contract to review`);
+};
+
+window.voidContract = async function(contractId) {
+  if (!await hubConfirm({ message: "Void this contract? This cannot be undone.", confirmLabel: "Void", destructive: true })) return;
+  const now = new Date().toISOString();
+  const idx = contracts.findIndex(c => c.id === contractId);
+  if (idx >= 0) contracts[idx] = { ...contracts[idx], status: "voided", updated_at: now };
+  closeModal();
+  render();
+  db(`UPDATE contracts SET status = 'voided', updated_at = ? WHERE id = ?`, [now, contractId]);
+  logActivity(contractId, "voided", `${ME.name} voided the contract`);
+};
+
+// ─── Child walkthrough ────────────────────────────────────────────────────────
+function openChildWalkthrough(contract, steps) {
+  currentContractSteps = steps;
+  const completedCount = steps.filter(s => s.completed_at).length;
+  const total          = steps.length;
+  const current        = nextIncompleteStep(steps);
+  const allDone        = stepsComplete(steps);
+
+  const dotsHtml = steps.map((s, i) => {
+    const done = !!s.completed_at;
+    const curr = !done && s.id === current?.id;
+    return `<div class="progress-dot ${done ? "done" : curr ? "current" : ""}"></div>`;
+  }).join("");
+
+  const stepHtml = allDone
+    ? `<div style="text-align:center;padding:20px 0">
+        <div style="font-size:2rem;margin-bottom:8px">🎉</div>
+        <div style="font-weight:600;margin-bottom:4px">All steps complete!</div>
+        <div style="font-size:.85rem;color:var(--muted)">Tap "Sign Contract" below to finish.</div>
+       </div>`
+    : renderWalkthroughStep(current, contract.id);
+
+  openModal(`
+    <h3>${esc(contract.title)}</h3>
+    <div style="font-size:.82rem;color:var(--muted);margin-bottom:10px">
+      Step ${completedCount + (allDone ? 0 : 1)} of ${total}
+    </div>
+    <div class="walkthrough-progress">${dotsHtml}</div>
+    <div id="walkthrough-step">${stepHtml}</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+      ${allDone
+        ? `<button class="btn btn-success" onclick="childSign('${esc(contract.id)}')">✍️ Sign Contract</button>`
+        : `<button class="btn btn-primary" id="wt-continue" onclick="completeStep('${esc(contract.id)}', '${esc(current?.id ?? "")}')" disabled>Continue →</button>`
+      }
+    </div>
+  `);
+}
+
+function renderWalkthroughStep(step, contractId) {
+  if (!step) return "";
+  const isVideo = step.type === "video";
+  const isCommit = step.type === "commit";
+
+  const bodyHtml = isVideo
+    ? `<a href="${esc(step.body)}" target="_blank" rel="noopener">${esc(step.body)}</a>`
+    : `<div class="step-body-text">${esc(step.body)}</div>`;
+
+  const controlHtml = isCommit
+    ? `<div style="margin-top:8px;font-size:.85rem;color:var(--muted)">Type your commitment below:</div>
+       <textarea class="commit-input" id="wt-response" placeholder="${esc(step.body)}" oninput="onCommitInput()"></textarea>`
+    : `<label class="checkbox-row" style="margin-top:10px">
+        <input type="checkbox" id="wt-check" onchange="onStepCheck()" />
+        <span>${esc(checkboxLabel(step.type))}</span>
+       </label>`;
+
+  return `
+    <div class="walkthrough-step">
+      <div class="step-type-label">${esc(stepTypeLabel(step.type))}</div>
+      <div class="step-title">${esc(step.title)}</div>
+      ${bodyHtml}
+      ${controlHtml}
+    </div>
+  `;
+}
+
+function checkboxLabel(type) {
+  if (type === "video")       return "I have watched this video";
+  if (type === "acknowledge") return "I understand and acknowledge this";
+  if (type === "cost")        return "I understand the costs involved";
+  return "I have completed this step";
+}
+
+window.onStepCheck = function() {
+  const checked = document.getElementById("wt-check")?.checked;
+  const btn = document.getElementById("wt-continue");
+  if (btn) btn.disabled = !checked;
+};
+
+window.onCommitInput = function() {
+  const val = document.getElementById("wt-response")?.value.trim();
+  const btn = document.getElementById("wt-continue");
+  if (btn) btn.disabled = !val;
+};
+
+window.completeStep = function(contractId, stepId) {
+  if (!stepId) return;
+  const response = document.getElementById("wt-response")?.value.trim() ?? "";
+  const now = new Date().toISOString();
+  currentContractSteps = currentContractSteps.map(s =>
+    s.id === stepId ? { ...s, completed_by: ME.id, completed_at: now, response } : s
+  );
+  const contract = contracts.find(c => c.id === contractId);
+  if (contract) openChildWalkthrough(contract, currentContractSteps);
+  db(`UPDATE contract_steps SET completed_by = ?, completed_at = ?, response = ? WHERE id = ? AND contract_id = ?`,
+    [ME.id, now, response, stepId, contractId]);
+};
+
+window.childSign = async function(contractId) {
+  if (!await hubConfirm({ message: "Sign this contract? This means you agree to everything in it.", confirmLabel: "Sign" })) return;
+  const contract = contracts.find(c => c.id === contractId);
+  const now = new Date().toISOString();
+  const idx = contracts.findIndex(c => c.id === contractId);
+  if (idx >= 0) contracts[idx] = { ...contracts[idx], status: "child_signed", child_signed_at: now, updated_at: now };
+  closeModal();
+  render();
+  db(`UPDATE contracts SET status = 'child_signed', child_signed_at = ?, updated_at = ? WHERE id = ?`, [now, now, contractId]);
+  logActivity(contractId, "child_signed", `${ME.name} signed the contract`);
+  notify(`${ME.name} signed the contract`, `"${contract?.title}" is ready for your countersignature`);
+};
+
+// ─── Contract view (read-only / parent countersign) ───────────────────────────
+function openContractView(contract, steps) {
+  const child    = members.find(m => m.id === contract.child_id);
+  const creator  = members.find(m => m.id === contract.created_by);
+  const signer   = contract.parent_signed_by ? members.find(m => m.id === contract.parent_signed_by) : null;
+  const meIsAdult = isAdult(ME);
+  const canCountersign = contract.status === "child_signed" && meIsAdult;
+  const canVoid = (contract.status === "active") && meIsAdult;
+
+  const stepsHtml = steps.map(s => {
+    const done = !!s.completed_at;
+    return `
+      <div class="step-item ${done ? "completed" : ""}">
+        <span class="step-icon">${stepIcon(s.type)}</span>
+        <div class="step-body">
+          <div class="step-type-label">${esc(stepTypeLabel(s.type))}</div>
+          <div class="step-title">${esc(s.title)}</div>
+          ${s.body ? `<div class="step-content">${esc(s.body)}</div>` : ""}
+          ${done && s.response ? `<div class="step-check">✍️ "${esc(s.response)}"</div>` : ""}
+          ${done ? `<div class="step-check">✓ Completed ${formatDate(s.completed_at)}</div>` : ""}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  const sigBlock = contract.status === "completed"
+    ? `<div class="detail-section">
+        <div class="sig-block signed">
+          <div class="sig-label">Signed by child</div>
+          <div class="sig-name">${esc(child?.name ?? "?")}</div>
+          <div class="sig-date">${formatDate(contract.child_signed_at)}</div>
+        </div>
+        <div class="sig-block signed" style="margin-top:8px">
+          <div class="sig-label">Countersigned by parent</div>
+          <div class="sig-name">${esc(signer?.name ?? "?")}</div>
+          <div class="sig-date">${formatDate(contract.parent_signed_at)}</div>
+        </div>
+       </div>`
+    : contract.child_signed_at
+      ? `<div class="detail-section">
+          <div class="sig-block signed">
+            <div class="sig-label">Signed by child</div>
+            <div class="sig-name">${esc(child?.name ?? "?")}</div>
+            <div class="sig-date">${formatDate(contract.child_signed_at)}</div>
+          </div>
+          <div class="sig-block pending" style="margin-top:8px;display:flex;align-items:center;justify-content:center;min-height:56px">
+            <span style="font-size:.85rem">Awaiting parent countersignature…</span>
+          </div>
+         </div>`
+      : "";
+
+  openModal(`
+    <h3>📋 ${esc(contract.title)}</h3>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      ${statusHtml(contract.status)}
+      <span style="font-size:.82rem;color:var(--muted)">For ${esc(child?.name ?? "?")}</span>
+    </div>
+    ${contract.description ? `<p style="font-size:.88rem;color:var(--muted);margin-bottom:12px">${esc(contract.description)}</p>` : ""}
+
+    <div class="detail-label">Steps</div>
+    <div class="step-list">${stepsHtml || "<p style='color:var(--muted);font-size:.85rem'>No steps.</p>"}</div>
+
+    ${sigBlock}
+
+    <div class="modal-actions">
+      ${canVoid ? `<button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:var(--red)" onclick="voidContract('${esc(contract.id)}')">Void</button>` : ""}
+      <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+      ${canCountersign ? `<button class="btn btn-success" onclick="parentCountersign('${esc(contract.id)}')">✍️ Countersign</button>` : ""}
+    </div>
+  `);
+}
+
+window.parentCountersign = async function(contractId) {
+  if (!await hubConfirm({ message: "Countersign this contract? Both parties will be bound by it.", confirmLabel: "Countersign" })) return;
+  const contract = contracts.find(c => c.id === contractId);
+  const now = new Date().toISOString();
+  const idx = contracts.findIndex(c => c.id === contractId);
+  if (idx >= 0) contracts[idx] = { ...contracts[idx], status: "completed", parent_signed_by: ME.id, parent_signed_at: now, updated_at: now };
+  closeModal();
+  render();
+  db(`UPDATE contracts SET status = 'completed', parent_signed_by = ?, parent_signed_at = ?, updated_at = ? WHERE id = ?`,
+    [ME.id, now, now, contractId]);
+  logActivity(contractId, "completed", `${ME.name} countersigned — contract is complete`);
+  notify(`Contract complete!`, `"${contract?.title}" has been signed by both parties`);
+};
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+window.openContractDetail_ = async function(id) {
+  const contract = contracts.find(c => c.id === id);
+  if (contract) await openContractDetail(contract);
+};
+
+function renderCard(contract) {
+  const child      = members.find(m => m.id === contract.child_id);
+  const meIsAdult  = isAdult(ME);
+  const needsParent = contract.status === "child_signed" && meIsAdult;
+  const needsChild  = contract.status === "active" && !meIsAdult;
+
+  return `
+    <div class="contract-card ${needsParent ? "needs-action" : ""}" onclick="openContractDetail_('${esc(contract.id)}')">
+      <div class="contract-main">
+        <div class="contract-title">${esc(contract.title)}</div>
+        ${meIsAdult ? `<div class="contract-meta">
+          <div class="avatar xs" style="background:${mc(contract.child_id)}">${initial(child?.name ?? "?")}</div>
+          ${esc(child?.name ?? "?")}
+        </div>` : ""}
+        <div class="contract-sub">Created ${formatDate(contract.created_at)}</div>
+      </div>
+      <div class="contract-right">
+        ${statusHtml(contract.status)}
+        ${needsParent ? `<div class="action-needed">Needs signature</div>` : ""}
+        ${needsChild  ? `<div class="action-needed">Your turn!</div>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+function render() {
+  if (!ME) {
+    document.getElementById("root").innerHTML = `<div class="empty">Please log in to use Family Contract.</div>`;
+    return;
+  }
+  isAdult(ME) ? renderAdultView() : renderChildView();
+}
+
+function renderAdultView() {
+  const active  = contracts.filter(c => c.status !== "voided" && c.status !== "completed");
+  const archive = contracts.filter(c => c.status === "voided" || c.status === "completed");
+  const list    = activeTab === "active" ? active : archive;
+  const needsSig = active.filter(c => c.status === "child_signed").length;
+
+  const listHtml = list.length === 0
+    ? `<div class="empty">${activeTab === "active" ? "No active contracts. Create one to get started." : "No completed or voided contracts."}</div>`
+    : list.map(renderCard).join("");
+
+  document.getElementById("root").innerHTML = `
+    <header>
+      <div>
+        <h1>📋 Family Contracts</h1>
+        <div class="sub">Step-by-step agreements between parents and kids</div>
+      </div>
+      <button class="btn btn-header" onclick="openNewContractForm()">+ New</button>
+    </header>
+    <div class="tabs">
+      <button class="tab ${activeTab === "active" ? "active" : ""}" onclick="setTab('active')">
+        Active ${needsSig > 0 ? `<span class="tab-badge">${needsSig}</span>` : ""}
+      </button>
+      <button class="tab ${activeTab === "archive" ? "active" : ""}" onclick="setTab('archive')">Archive</button>
+    </div>
+    <div>${listHtml}</div>
+  `;
+}
+
+function renderChildView() {
+  const active   = contracts.filter(c => c.status === "active" || c.status === "child_signed");
+  const done     = contracts.filter(c => c.status === "completed");
+  const list     = activeTab === "active" ? active : done;
+
+  const listHtml = list.length === 0
+    ? `<div class="empty">${activeTab === "active" ? "No contracts right now." : "No completed contracts yet."}</div>`
+    : list.map(renderCard).join("");
+
+  document.getElementById("root").innerHTML = `
+    <header>
+      <div>
+        <h1>📋 My Agreements</h1>
+        <div class="sub">Contracts from your parents</div>
+      </div>
+    </header>
+    <div class="tabs">
+      <button class="tab ${activeTab === "active" ? "active" : ""}" onclick="setTab('active')">Active</button>
+      <button class="tab ${activeTab === "archive" ? "active" : ""}" onclick="setTab('archive')">Completed</button>
+    </div>
+    <div>${listHtml}</div>
+  `;
+}
+
+window.setTab = function(tab) { activeTab = tab; render(); };
+window.openNewContractForm = openNewContractForm;
+window.closeModal = closeModal;
+
+// ─── Deep link ─────────────────────────────────────────────────────────────────
+function handleDeepLink() {
+  const contractId = new URLSearchParams(window.location.search).get("contractId");
+  if (!contractId) return;
+  const contract = contracts.find(c => c.id === contractId);
+  if (contract) openContractDetail(contract);
+}
+
+// ─── Init ──────────────────────────────────────────────────────────────────────
+(async () => {
+  await Promise.all([loadMembers(), loadContracts()]);
+  render();
+  handleDeepLink();
+})();
+</script>
+</body>
+</html>
