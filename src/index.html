@@ -381,6 +381,7 @@ const APP_ID  = window.__APP_ID      ?? "family-contract";
 const ME      = window.__CURRENT_MEMBER ?? null;
 
 let members             = [];
+let memberMap           = new Map();
 let contracts           = [];
 let currentContractSteps = []; // steps for the currently-open contract modal
 let activeTab           = "active"; // "active" | "all"
@@ -405,11 +406,13 @@ async function loadMembers() {
       { id: "demo-c1", name: "Jordan", role: "child" },
       { id: "demo-c2", name: "Casey",  role: "child" },
     ];
+    memberMap = new Map(members.map(m => [m.id, m]));
     return;
   }
   try {
     const res = await fetch(`${CONTEXT}?keys=family.members`);
     members = ((await res.json())["family.members"]) ?? [];
+    memberMap = new Map(members.map(m => [m.id, m]));
   } catch { members = []; }
 }
 
@@ -435,7 +438,7 @@ async function loadSteps(contractId) {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-function memberName(id) { return members.find(m => m.id === id)?.name ?? "Someone"; }
+function memberName(id) { return memberMap.get(id)?.name ?? "Someone"; }
 function mc(id) { return memberColor(id, members); }
 function children() { return members.filter(m => !isAdult(m)); }
 
@@ -551,7 +554,7 @@ async function openContractDetail(contract) {
 // ─── Draft editor (parent) ───────────────────────────────────────────────────
 function openDraftEditor(contract, steps) {
   currentContractSteps = steps;
-  const child = members.find(m => m.id === contract.child_id);
+  const child = memberMap.get(contract.child_id);
   const stepTypeOptions = Object.entries(STEP_TYPES).map(([k, v]) =>
     `<option value="${k}">${v.icon} ${esc(v.label)}</option>`
   ).join("");
@@ -653,7 +656,7 @@ window.removeStep = async function(contractId, stepId) {
 window.activateContract = async function(contractId) {
   const contract = contracts.find(c => c.id === contractId);
   if (!contract) return;
-  const child = members.find(m => m.id === contract.child_id);
+  const child = memberMap.get(contract.child_id);
   if (!await hubConfirm({ message: `Send this contract to ${child?.name ?? "your child"}?`, confirmLabel: "Send" })) return;
 
   const now = new Date().toISOString();
@@ -790,9 +793,9 @@ window.childSign = async function(contractId) {
 
 // ─── Contract view (read-only / parent countersign) ───────────────────────────
 function openContractView(contract, steps) {
-  const child    = members.find(m => m.id === contract.child_id);
-  const creator  = members.find(m => m.id === contract.created_by);
-  const signer   = contract.parent_signed_by ? members.find(m => m.id === contract.parent_signed_by) : null;
+  const child    = memberMap.get(contract.child_id);
+  const creator  = memberMap.get(contract.created_by);
+  const signer   = contract.parent_signed_by ? memberMap.get(contract.parent_signed_by) : null;
   const meIsAdult = isAdult(ME);
   const canCountersign = contract.status === "child_signed" && meIsAdult;
   const canVoid = (contract.status === "active") && meIsAdult;
@@ -881,7 +884,7 @@ window.openContractDetail_ = async function(id) {
 };
 
 function renderCard(contract) {
-  const child      = members.find(m => m.id === contract.child_id);
+  const child      = memberMap.get(contract.child_id);
   const meIsAdult  = isAdult(ME);
   const needsParent = contract.status === "child_signed" && meIsAdult;
   const needsChild  = contract.status === "active" && !meIsAdult;
