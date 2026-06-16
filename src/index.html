@@ -421,9 +421,9 @@ async function loadContracts() {
   const meIsAdult = isAdult(ME);
   let rows;
   if (meIsAdult) {
-    ({ rows } = await db(`SELECT * FROM contracts ORDER BY created_at DESC`));
+    ({ rows } = await db(`SELECT * FROM app_family_contract__contracts ORDER BY created_at DESC`));
   } else {
-    ({ rows } = await db(`SELECT * FROM contracts WHERE child_id = ? ORDER BY created_at DESC`, [ME.id]));
+    ({ rows } = await db(`SELECT * FROM app_family_contract__contracts WHERE child_id = ? ORDER BY created_at DESC`, [ME.id]));
   }
   contracts = rows ?? [];
 }
@@ -431,7 +431,7 @@ async function loadContracts() {
 async function loadSteps(contractId) {
   if (!DB) return [];
   const { rows } = await db(
-    `SELECT * FROM contract_steps WHERE contract_id = ? ORDER BY position ASC`,
+    `SELECT * FROM app_family_contract__contract_steps WHERE contract_id = ? ORDER BY position ASC`,
     [contractId]
   );
   return rows ?? [];
@@ -462,7 +462,7 @@ async function notify(title, body) {
 // ─── Activity ─────────────────────────────────────────────────────────────────
 async function logActivity(contractId, action, detail = "") {
   await db(
-    `INSERT INTO activity (id, contract_id, actor_id, action, detail, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
     [crypto.randomUUID(), contractId, ME?.id ?? "system", action, detail, new Date().toISOString()]
   );
 }
@@ -527,7 +527,7 @@ window.submitNewContract = async function() {
 
   // Await the INSERT so steps can reference this contract_id via FK
   await db(
-    `INSERT INTO contracts (id, title, description, child_id, created_by, status, created_at, updated_at)
+    `INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, created_at, updated_at)
      VALUES (?, ?, ?, ?, ?, 'draft', ?, ?)`,
     [id, title, desc, childId, ME.id, now, now]
   );
@@ -641,7 +641,7 @@ window.addStep = function(contractId, currentCount) {
   currentContractSteps = [...currentContractSteps, { id, contract_id: contractId, position: currentCount, type, title, body, completed_at: null, completed_by: null, response: null }];
   const contract = contracts.find(c => c.id === contractId);
   if (contract) openDraftEditor(contract, currentContractSteps);
-  db(`INSERT INTO contract_steps (id, contract_id, position, type, title, body) VALUES (?, ?, ?, ?, ?, ?)`,
+  db(`INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body) VALUES (?, ?, ?, ?, ?, ?)`,
     [id, contractId, currentCount, type, title, body]);
 };
 
@@ -650,7 +650,7 @@ window.removeStep = async function(contractId, stepId) {
   currentContractSteps = currentContractSteps.filter(s => s.id !== stepId);
   const contract = contracts.find(c => c.id === contractId);
   if (contract) openDraftEditor(contract, currentContractSteps);
-  db(`DELETE FROM contract_steps WHERE id = ? AND contract_id = ?`, [stepId, contractId]);
+  db(`DELETE FROM app_family_contract__contract_steps WHERE id = ? AND contract_id = ?`, [stepId, contractId]);
 };
 
 window.activateContract = async function(contractId) {
@@ -664,7 +664,7 @@ window.activateContract = async function(contractId) {
   if (idx >= 0) contracts[idx] = { ...contracts[idx], status: "active", updated_at: now };
   closeModal();
   render();
-  db(`UPDATE contracts SET status = 'active', updated_at = ? WHERE id = ?`, [now, contractId]);
+  db(`UPDATE app_family_contract__contracts SET status = 'active', updated_at = ? WHERE id = ?`, [now, contractId]);
   logActivity(contractId, "activated", `${ME.name} sent the contract to ${child?.name}`);
   notify(`New contract from ${ME.name}`, `"${contract.title}" — open Family Contract to review`);
 };
@@ -676,7 +676,7 @@ window.voidContract = async function(contractId) {
   if (idx >= 0) contracts[idx] = { ...contracts[idx], status: "voided", updated_at: now };
   closeModal();
   render();
-  db(`UPDATE contracts SET status = 'voided', updated_at = ? WHERE id = ?`, [now, contractId]);
+  db(`UPDATE app_family_contract__contracts SET status = 'voided', updated_at = ? WHERE id = ?`, [now, contractId]);
   logActivity(contractId, "voided", `${ME.name} voided the contract`);
 };
 
@@ -774,7 +774,7 @@ window.completeStep = function(contractId, stepId) {
   );
   const contract = contracts.find(c => c.id === contractId);
   if (contract) openChildWalkthrough(contract, currentContractSteps);
-  db(`UPDATE contract_steps SET completed_by = ?, completed_at = ?, response = ? WHERE id = ? AND contract_id = ?`,
+  db(`UPDATE app_family_contract__contract_steps SET completed_by = ?, completed_at = ?, response = ? WHERE id = ? AND contract_id = ?`,
     [ME.id, now, response, stepId, contractId]);
 };
 
@@ -786,7 +786,7 @@ window.childSign = async function(contractId) {
   if (idx >= 0) contracts[idx] = { ...contracts[idx], status: "child_signed", child_signed_at: now, updated_at: now };
   closeModal();
   render();
-  db(`UPDATE contracts SET status = 'child_signed', child_signed_at = ?, updated_at = ? WHERE id = ?`, [now, now, contractId]);
+  db(`UPDATE app_family_contract__contracts SET status = 'child_signed', child_signed_at = ?, updated_at = ? WHERE id = ?`, [now, now, contractId]);
   logActivity(contractId, "child_signed", `${ME.name} signed the contract`);
   notify(`${ME.name} signed the contract`, `"${contract?.title}" is ready for your countersignature`);
 };
@@ -871,7 +871,7 @@ window.parentCountersign = async function(contractId) {
   if (idx >= 0) contracts[idx] = { ...contracts[idx], status: "completed", parent_signed_by: ME.id, parent_signed_at: now, updated_at: now };
   closeModal();
   render();
-  db(`UPDATE contracts SET status = 'completed', parent_signed_by = ?, parent_signed_at = ?, updated_at = ? WHERE id = ?`,
+  db(`UPDATE app_family_contract__contracts SET status = 'completed', parent_signed_by = ?, parent_signed_at = ?, updated_at = ? WHERE id = ?`,
     [ME.id, now, now, contractId]);
   logActivity(contractId, "completed", `${ME.name} countersigned — contract is complete`);
   notify(`Contract complete!`, `"${contract?.title}" has been signed by both parties`);

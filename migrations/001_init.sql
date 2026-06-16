@@ -1,5 +1,4 @@
-CREATE TABLE IF NOT EXISTS contracts (
-  household_id     UUID NOT NULL DEFAULT current_setting('app.household_id', true)::uuid,
+CREATE TABLE IF NOT EXISTS app_family_contract__contracts (
   id               TEXT NOT NULL,
   title            TEXT NOT NULL,
   description      TEXT NOT NULL DEFAULT '',
@@ -11,11 +10,10 @@ CREATE TABLE IF NOT EXISTS contracts (
   parent_signed_at TEXT,
   created_at       TEXT NOT NULL,
   updated_at       TEXT NOT NULL,
-  PRIMARY KEY (household_id, id)
+  PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS contract_steps (
-  household_id  UUID NOT NULL DEFAULT current_setting('app.household_id', true)::uuid,
+CREATE TABLE IF NOT EXISTS app_family_contract__contract_steps (
   id            TEXT NOT NULL,
   contract_id   TEXT NOT NULL,
   position      INTEGER NOT NULL DEFAULT 0,
@@ -25,19 +23,18 @@ CREATE TABLE IF NOT EXISTS contract_steps (
   completed_by  TEXT,
   completed_at  TEXT,
   response      TEXT NOT NULL DEFAULT '',
-  PRIMARY KEY (household_id, id)
+  PRIMARY KEY (id)
 );
 
 CREATE INDEX IF NOT EXISTS contract_steps_contract_id
-  ON contract_steps (household_id, contract_id, position);
+  ON app_family_contract__contract_steps (contract_id, position);
 
-CREATE TABLE IF NOT EXISTS activity (
-  household_id  UUID NOT NULL DEFAULT current_setting('app.household_id', true)::uuid,
+CREATE TABLE IF NOT EXISTS app_family_contract__activity (
   id            TEXT NOT NULL,
   contract_id   TEXT NOT NULL,
   actor_id      TEXT NOT NULL,
   action        TEXT NOT NULL,
   detail        TEXT NOT NULL DEFAULT '',
   created_at    TEXT NOT NULL,
-  PRIMARY KEY (household_id, id)
+  PRIMARY KEY (id)
 );
