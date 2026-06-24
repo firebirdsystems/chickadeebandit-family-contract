@@ -397,6 +397,17 @@ async function db(sql, params = []) {
   return res.json();
 }
 
+async function agree(table, id, agreed) {
+  if (!DB) return { success: false };
+  const endpoint = DB.replace("/api/db", "/api/agree");
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ table, id, agreed }),
+  });
+  return res.json();
+}
+
 // ─── Load ─────────────────────────────────────────────────────────────────────
 async function loadMembers() {
   if (!CONTEXT) {
@@ -418,13 +429,7 @@ async function loadMembers() {
 
 async function loadContracts() {
   if (!DB || !ME) return;
-  const meIsAdult = isAdult(ME);
-  let rows;
-  if (meIsAdult) {
-    ({ rows } = await db(`SELECT * FROM app_family_contract__contracts ORDER BY created_at DESC`));
-  } else {
-    ({ rows } = await db(`SELECT * FROM app_family_contract__contracts WHERE child_id = ? ORDER BY created_at DESC`, [ME.id]));
-  }
+  const { rows } = await db(`SELECT * FROM app_family_contract__contracts ORDER BY created_at DESC`);
   contracts = rows ?? [];
 }
 
@@ -783,10 +788,11 @@ window.childSign = async function(contractId) {
   const contract = contracts.find(c => c.id === contractId);
   const now = new Date().toISOString();
   const idx = contracts.findIndex(c => c.id === contractId);
-  if (idx >= 0) contracts[idx] = { ...contracts[idx], status: "child_signed", child_signed_at: now, updated_at: now };
+  if (idx >= 0) contracts[idx] = { ...contracts[idx], child_agreed: 1, child_signed_at: now, updated_at: now };
   closeModal();
   render();
-  db(`UPDATE app_family_contract__contracts SET status = 'child_signed', child_signed_at = ?, updated_at = ? WHERE id = ?`, [now, now, contractId]);
+  await agree("contracts", contractId, true);
+  db(`UPDATE app_family_contract__contracts SET child_signed_at = ?, updated_at = ? WHERE id = ?`, [now, now, contractId]);
   logActivity(contractId, "child_signed", `${ME.name} signed the contract`);
   notify(`${ME.name} signed the contract`, `"${contract?.title}" is ready for your countersignature`);
 };
@@ -797,7 +803,7 @@ function openContractView(contract, steps) {
   const creator  = memberMap.get(contract.created_by);
   const signer   = contract.parent_signed_by ? memberMap.get(contract.parent_signed_by) : null;
   const meIsAdult = isAdult(ME);
-  const canCountersign = contract.status === "child_signed" && meIsAdult;
+  const canCountersign = !!contract.child_agreed && contract.status === "active" && meIsAdult;
   const canVoid = (contract.status === "active") && meIsAdult;
 
   const stepsHtml = steps.map(s => {
@@ -829,7 +835,7 @@ function openContractView(contract, steps) {
           <div class="sig-date">${formatDate(contract.parent_signed_at)}</div>
         </div>
        </div>`
-    : contract.child_signed_at
+    : contract.child_agreed
       ? `<div class="detail-section">
           <div class="sig-block signed">
             <div class="sig-label">Signed by child</div>
@@ -868,10 +874,11 @@ window.parentCountersign = async function(contractId) {
   const contract = contracts.find(c => c.id === contractId);
   const now = new Date().toISOString();
   const idx = contracts.findIndex(c => c.id === contractId);
-  if (idx >= 0) contracts[idx] = { ...contracts[idx], status: "completed", parent_signed_by: ME.id, parent_signed_at: now, updated_at: now };
+  if (idx >= 0) contracts[idx] = { ...contracts[idx], status: "completed", parent_agreed: 1, parent_signed_by: ME.id, parent_signed_at: now, updated_at: now };
   closeModal();
   render();
-  db(`UPDATE app_family_contract__contracts SET status = 'completed', parent_signed_by = ?, parent_signed_at = ?, updated_at = ? WHERE id = ?`,
+  await agree("contracts", contractId, true);
+  db(`UPDATE app_family_contract__contracts SET parent_signed_by = ?, parent_signed_at = ?, updated_at = ? WHERE id = ?`,
     [ME.id, now, now, contractId]);
   logActivity(contractId, "completed", `${ME.name} countersigned — contract is complete`);
   notify(`Contract complete!`, `"${contract?.title}" has been signed by both parties`);

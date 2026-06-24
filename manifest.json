@@ -24,6 +24,26 @@
     "requires_approval": false
   },
   "storage": "db",
+  "row_policies": {
+    "contracts": {
+      "kind": "party_scoped",
+      "member_columns": ["child_id", "created_by"],
+      "self_column": "created_by"
+    }
+  },
+  "agreements": {
+    "contracts": {
+      "participant_columns": ["child_id", "created_by"],
+      "agreement_columns": {
+        "child_id": "child_agreed",
+        "created_by": "parent_agreed"
+      },
+      "status_column": "status",
+      "pending_value": "active",
+      "locked_value": "completed",
+      "updated_at_column": "updated_at"
+    }
+  },
   "nav": { "label": "Contracts" },
   "resource_limits": {
     "max_db_bytes": 52428800
