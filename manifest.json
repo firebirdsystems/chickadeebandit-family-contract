@@ -1,7 +1,7 @@
 {
   "id": "family-contract",
   "name": "Family Contract",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Parents create step-by-step acknowledgement contracts for kids — watch videos, agree to costs, make commitments — before a big decision like getting a pet or an instrument.",
   "entrypoint": "index.html",
   "runtime": "static",
@@ -29,19 +29,36 @@
       "kind": "party_scoped",
       "member_columns": ["child_id", "created_by"],
       "self_column": "created_by"
+    },
+    "contract_steps": {
+      "kind": "party_scoped",
+      "member_columns": ["child_id", "created_by"],
+      "self_column": "created_by"
+    },
+    "contract_agreements": {
+      "kind": "endpoint_only",
+      "read": "everyone"
+    },
+    "activity": {
+      "kind": "party_scoped",
+      "member_columns": ["actor_id", "child_id", "created_by"],
+      "self_column": "actor_id"
     }
   },
   "agreements": {
-    "contracts": {
+    "contract_agreements": {
       "participant_columns": ["child_id", "created_by"],
       "agreement_columns": {
         "child_id": "child_agreed",
         "created_by": "parent_agreed"
       },
       "status_column": "status",
-      "pending_value": "active",
-      "locked_value": "completed",
-      "updated_at_column": "updated_at"
+      "pending_value": "pending",
+      "locked_value": "locked",
+      "locked_at_column": "locked_at",
+      "updated_at_column": "updated_at",
+      "init_from_table": "contracts",
+      "init_columns": ["child_id", "created_by"]
     }
   },
   "nav": { "label": "Contracts" },

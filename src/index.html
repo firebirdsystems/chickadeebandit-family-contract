@@ -429,8 +429,28 @@ async function loadMembers() {
 
 async function loadContracts() {
   if (!DB || !ME) return;
-  const { rows } = await db(`SELECT * FROM app_family_contract__contracts ORDER BY created_at DESC`);
-  contracts = rows ?? [];
+  // Agreement flags and the locked/"completed" state come from the endpoint_only
+  // contract_agreements table (read: everyone), NOT from the party-writable
+  // contracts row — so a forged contracts.status = 'completed' or child_agreed/
+  // parent_agreed flag is ignored. Effective status is derived here.
+  const { rows } = await db(
+    `SELECT
+       c.id, c.title, c.description, c.child_id, c.created_by,
+       c.child_signed_at, c.parent_signed_by, c.parent_signed_at,
+       c.created_at, c.updated_at,
+       COALESCE(ca.child_agreed, 0)  AS child_agreed,
+       COALESCE(ca.parent_agreed, 0) AS parent_agreed,
+       CASE
+         WHEN c.status IN ('draft', 'voided') THEN c.status
+         WHEN ca.status = 'locked'            THEN 'completed'
+         ELSE 'active'
+       END AS status,
+       ca.locked_at
+     FROM app_family_contract__contracts c
+     LEFT JOIN app_family_contract__contract_agreements ca ON ca.id = c.id
+     ORDER BY c.created_at DESC`
+  );
+  contracts = (rows ?? []).map(r => ({ ...r, child_agreed: !!r.child_agreed, parent_agreed: !!r.parent_agreed }));
 }
 
 async function loadSteps(contractId) {
@@ -466,9 +486,12 @@ async function notify(title, body) {
 
 // ─── Activity ─────────────────────────────────────────────────────────────────
 async function logActivity(contractId, action, detail = "") {
+  // child_id/created_by let the row be party_scoped to the contract's two parties.
+  // actor_id is forced to the verified caller server-side (party_scoped self_column).
+  const c = contracts.find(x => x.id === contractId);
   await db(
-    `INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
-    [crypto.randomUUID(), contractId, ME?.id ?? "system", action, detail, new Date().toISOString()]
+    `INSERT INTO app_family_contract__activity (id, contract_id, actor_id, child_id, created_by, action, detail, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [crypto.randomUUID(), contractId, ME?.id ?? "system", c?.child_id ?? "", c?.created_by ?? "", action, detail, new Date().toISOString()]
   );
 }
 
@@ -643,11 +666,13 @@ window.addStep = function(contractId, currentCount) {
   if (!title) { document.getElementById("ns-title").focus(); return; }
 
   const id = crypto.randomUUID();
-  currentContractSteps = [...currentContractSteps, { id, contract_id: contractId, position: currentCount, type, title, body, completed_at: null, completed_by: null, response: null }];
   const contract = contracts.find(c => c.id === contractId);
+  currentContractSteps = [...currentContractSteps, { id, contract_id: contractId, position: currentCount, type, title, body, completed_at: null, completed_by: null, response: null }];
   if (contract) openDraftEditor(contract, currentContractSteps);
-  db(`INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body) VALUES (?, ?, ?, ?, ?, ?)`,
-    [id, contractId, currentCount, type, title, body]);
+  // child_id/created_by scope the step to the contract's two parties (party_scoped).
+  // created_by is forced to the verified caller (the creating parent) server-side.
+  db(`INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, contractId, currentCount, type, title, body, contract?.child_id ?? "", contract?.created_by ?? ME.id]);
 };
 
 window.removeStep = async function(contractId, stepId) {
@@ -788,10 +813,13 @@ window.childSign = async function(contractId) {
   const contract = contracts.find(c => c.id === contractId);
   const now = new Date().toISOString();
   const idx = contracts.findIndex(c => c.id === contractId);
-  if (idx >= 0) contracts[idx] = { ...contracts[idx], child_agreed: 1, child_signed_at: now, updated_at: now };
+  if (idx >= 0) contracts[idx] = { ...contracts[idx], child_agreed: true, child_signed_at: now, updated_at: now };
   closeModal();
   render();
-  await agree("contracts", contractId, true);
+  // The child's agreement is recorded ONLY through the endpoint_only agreement table
+  // (api/agree maps the caller to child_agreed); child_signed_at is just a display
+  // timestamp on the party-writable contracts row.
+  await agree("contract_agreements", contractId, true);
   db(`UPDATE app_family_contract__contracts SET child_signed_at = ?, updated_at = ? WHERE id = ?`, [now, now, contractId]);
   logActivity(contractId, "child_signed", `${ME.name} signed the contract`);
   notify(`${ME.name} signed the contract`, `"${contract?.title}" is ready for your countersignature`);
@@ -803,7 +831,9 @@ function openContractView(contract, steps) {
   const creator  = memberMap.get(contract.created_by);
   const signer   = contract.parent_signed_by ? memberMap.get(contract.parent_signed_by) : null;
   const meIsAdult = isAdult(ME);
-  const canCountersign = !!contract.child_agreed && contract.status === "active" && meIsAdult;
+  // Only the creating parent can countersign: api/agree maps created_by -> parent_agreed,
+  // so a different adult's agree call would be rejected as a non-participant.
+  const canCountersign = !!contract.child_agreed && contract.status === "active" && ME.id === contract.created_by;
   const canVoid = (contract.status === "active") && meIsAdult;
 
   const stepsHtml = steps.map(s => {
@@ -874,10 +904,13 @@ window.parentCountersign = async function(contractId) {
   const contract = contracts.find(c => c.id === contractId);
   const now = new Date().toISOString();
   const idx = contracts.findIndex(c => c.id === contractId);
-  if (idx >= 0) contracts[idx] = { ...contracts[idx], status: "completed", parent_agreed: 1, parent_signed_by: ME.id, parent_signed_at: now, updated_at: now };
+  if (idx >= 0) contracts[idx] = { ...contracts[idx], status: "completed", parent_agreed: true, parent_signed_by: ME.id, parent_signed_at: now, updated_at: now };
   closeModal();
   render();
-  await agree("contracts", contractId, true);
+  // The countersignature (and the lock that derives 'completed') happens server-side
+  // in api/agree once both flags are set — we do NOT write status='completed' to the
+  // party-writable contracts row. parent_signed_by/at are display-only.
+  await agree("contract_agreements", contractId, true);
   db(`UPDATE app_family_contract__contracts SET parent_signed_by = ?, parent_signed_at = ?, updated_at = ? WHERE id = ?`,
     [ME.id, now, now, contractId]);
   logActivity(contractId, "completed", `${ME.name} countersigned — contract is complete`);
@@ -893,8 +926,10 @@ window.openContractDetail_ = async function(id) {
 function renderCard(contract) {
   const child      = memberMap.get(contract.child_id);
   const meIsAdult  = isAdult(ME);
-  const needsParent = contract.status === "child_signed" && meIsAdult;
-  const needsChild  = contract.status === "active" && !meIsAdult;
+  // "Needs signature" = child has agreed and the creating parent must countersign.
+  // "Your turn!" = active contract the child hasn't signed yet.
+  const needsParent = contract.status === "active" && contract.child_agreed && ME.id === contract.created_by;
+  const needsChild  = contract.status === "active" && !meIsAdult && !contract.child_agreed;
 
   return `
     <div class="contract-card ${needsParent ? "needs-action" : ""}" onclick="openContractDetail_('${esc(contract.id)}')">
@@ -927,7 +962,7 @@ function renderAdultView() {
   const active  = contracts.filter(c => c.status !== "voided" && c.status !== "completed");
   const archive = contracts.filter(c => c.status === "voided" || c.status === "completed");
   const list    = activeTab === "active" ? active : archive;
-  const needsSig = active.filter(c => c.status === "child_signed").length;
+  const needsSig = active.filter(c => c.status === "active" && c.child_agreed && ME.id === c.created_by).length;
 
   const listHtml = list.length === 0
     ? `<div class="empty">${activeTab === "active" ? "No active contracts. Create one to get started." : "No completed or voided contracts."}</div>`
