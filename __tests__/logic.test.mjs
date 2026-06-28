@@ -40,8 +40,8 @@ describe("nextIncompleteStep", () => {
 });
 
 describe("STEP_TYPES", () => {
-  it("has all four types", () => {
-    expect(Object.keys(STEP_TYPES)).toEqual(["video", "acknowledge", "commit", "cost"]);
+  it("has all five types", () => {
+    expect(Object.keys(STEP_TYPES)).toEqual(["video", "acknowledge", "commit", "cost", "other"]);
   });
 });
 
