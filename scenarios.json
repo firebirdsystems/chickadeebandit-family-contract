@@ -1,0 +1,82 @@
+{
+  "scenarios": [
+    {
+      "name": "a contract and its steps are visible only to the child and the parent who created it, not to other members",
+      "members": { "parent": "adult", "child": "child", "other": "child" },
+      "steps": [
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "INSERT INTO app_family_contract__contracts (id, title, child_id, created_by, status, created_at, updated_at) VALUES ('c1', 'Screen time', ?, ?, 'draft', '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
+          "params": ["{{child}}", "{{other}}"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "SELECT created_by FROM app_family_contract__contracts WHERE id = 'c1'",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "created_by": "scn-parent" }] }
+        },
+        {
+          "action": "db",
+          "as": "child",
+          "sql": "SELECT id FROM app_family_contract__contracts WHERE id = 'c1'",
+          "expect": { "status": 200, "rowCount": 1 }
+        },
+        {
+          "action": "db",
+          "as": "other",
+          "sql": "SELECT id FROM app_family_contract__contracts WHERE id = 'c1'",
+          "expect": { "status": 200, "rowCount": 0 }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, child_id, created_by) VALUES ('s1', 'c1', 0, 'clause', 'No phones at dinner', ?, ?)",
+          "params": ["{{child}}", "{{parent}}"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "other",
+          "sql": "SELECT id FROM app_family_contract__contract_steps WHERE contract_id = 'c1'",
+          "expect": { "status": 200, "rowCount": 0 }
+        },
+        {
+          "action": "db",
+          "as": "child",
+          "sql": "SELECT id FROM app_family_contract__contract_steps WHERE contract_id = 'c1'",
+          "expect": { "status": 200, "rowCount": 1 }
+        }
+      ]
+    },
+    {
+      "name": "consent flags live in the endpoint_only agreements table and cannot be forged via app SQL",
+      "members": { "parent": "adult", "child": "child" },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_family_contract__contracts (id, title, child_id, created_by, status, created_at, updated_at) VALUES ('c1', 'Chores', ?, ?, 'pending', '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
+          "params": ["{{child}}", "{{parent}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, updated_at) VALUES ('c1', ?, ?, 0, 0, 'pending', '2026-01-01T00:00:00Z')",
+          "params": ["{{child}}", "{{parent}}"]
+        },
+        {
+          "action": "db",
+          "as": "child",
+          "sql": "SELECT child_agreed, status FROM app_family_contract__contract_agreements WHERE id = 'c1'",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "child_agreed": 0, "status": "pending" }] }
+        },
+        {
+          "action": "db",
+          "as": "child",
+          "sql": "UPDATE app_family_contract__contract_agreements SET child_agreed = 1, parent_agreed = 1, status = 'locked' WHERE id = 'c1'",
+          "expect": { "status": 403, "errorIncludes": "endpoint" }
+        }
+      ]
+    }
+  ]
+}
