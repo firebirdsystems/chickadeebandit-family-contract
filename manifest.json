@@ -1,5 +1,6 @@
 {
   "id": "family-contract",
+  "contexts": ["household", "shared_space"],
   "name": "Family Contract",
   "version": "1.1.0",
   "description": "Parents create step-by-step acknowledgement contracts for kids — watch videos, agree to costs, make commitments — before a big decision like getting a pet or an instrument.",
