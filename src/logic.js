@@ -33,3 +33,11 @@ export function formatDate(iso) {
     month: "short", day: "numeric", year: "numeric",
   });
 }
+
+/**
+ * Fields the in-app search matches against (see hub-sdk `searchMatch`).
+ * The description is the agreement — the title is a label for it.
+ */
+export function searchableFields(item) {
+  return [item.title, item.description];
+}

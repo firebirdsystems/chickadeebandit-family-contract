@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { STEP_TYPES, STATUS_INFO, stepsComplete, nextIncompleteStep, formatDate } from "../src/logic.js";
+import { STEP_TYPES, STATUS_INFO, stepsComplete, nextIncompleteStep, formatDate, searchableFields } from "../src/logic.js";
 
 describe("stepsComplete", () => {
   it("returns true when all steps have completed_at", () => {
@@ -51,5 +51,12 @@ describe("STATUS_INFO", () => {
     for (const s of statuses) {
       expect(STATUS_INFO[s]).toBeDefined();
     }
+  });
+});
+
+describe("searchableFields", () => {
+  it("matches on the description — the agreement itself, not its label", () => {
+    expect(searchableFields({ title: "Phone rules", description: "no screens after 9pm on school nights" }))
+      .toContain("no screens after 9pm on school nights");
   });
 });

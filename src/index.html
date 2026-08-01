@@ -363,6 +363,13 @@
 
     .empty { text-align: center; padding: 36px 16px; color: var(--muted); font-size: 0.9rem; }
     .loading { text-align: center; padding: 40px; color: var(--muted); }
+    .search-row { margin-bottom: 12px; }
+    .search-input {
+      width: 100%; border: 1.5px solid var(--border-mid, var(--border, #d1d5db));
+      border-radius: 8px; padding: 9px 11px; font: inherit;
+      background: var(--surface, var(--card, #fff)); color: var(--text, inherit);
+    }
+    .search-input:focus { outline: none; border-color: var(--accent, #6366f1); }
   </style>
   <base href="/run/family-contract/" />
 </head>
@@ -372,8 +379,8 @@
 </div>
 
 <script type="module">
-import { memberColor, initial, esc, isAdult, hubConfirm } from "/hub-sdk.js";
-import { STEP_TYPES, STATUS_INFO, stepsComplete, nextIncompleteStep, formatDate } from "./logic.js";
+import { memberColor, initial, esc, isAdult, hubConfirm, searchMatch } from "/hub-sdk.js";
+import { STEP_TYPES, STATUS_INFO, stepsComplete, nextIncompleteStep, formatDate, searchableFields } from "./logic.js";
 
 const CONTEXT = window.__CONTEXT_URL ?? "";
 const DB      = window.__DB_URL      ?? "";
@@ -385,6 +392,7 @@ let memberMap           = new Map();
 let contracts           = [];
 let currentContractSteps = []; // steps for the currently-open contract modal
 let activeTab           = "active"; // "active" | "all"
+let searchQ = "";       // in-app search (see logic.js searchableFields)
 
 // ─── DB ───────────────────────────────────────────────────────────────────────
 async function db(sql, params = []) {
@@ -953,6 +961,16 @@ function renderCard(contract) {
   `;
 }
 
+// render() rewrites the whole view, so put the caret back after typing.
+document.addEventListener("input", (e) => {
+  if (e.target.id !== "search") return;
+  searchQ = e.target.value;
+  const caret = e.target.selectionStart;
+  render();
+  const next = document.getElementById("search");
+  if (next) { next.focus(); next.setSelectionRange(caret, caret); }
+});
+
 function render() {
   if (!ME) {
     document.getElementById("root").innerHTML = `<div class="empty">Please log in to use Family Contract.</div>`;
@@ -967,9 +985,12 @@ function renderAdultView() {
   const list    = activeTab === "active" ? active : archive;
   const needsSig = active.filter(c => c.status === "active" && c.child_agreed && ME.id === c.created_by).length;
 
-  const listHtml = list.length === 0
-    ? `<div class="empty">${activeTab === "active" ? "No active contracts. Create one to get started." : "No completed or voided contracts."}</div>`
-    : list.map(renderCard).join("");
+  const shown = searchQ ? list.filter(c => searchMatch(searchQ, searchableFields(c))) : list;
+  const listHtml = shown.length === 0
+    ? (searchQ
+      ? `<div class="empty">No contracts match "${esc(searchQ)}".</div>`
+      : `<div class="empty">${activeTab === "active" ? "No active contracts. Create one to get started." : "No completed or voided contracts."}</div>`)
+    : shown.map(renderCard).join("");
 
   document.getElementById("root").innerHTML = `
     <header>
@@ -985,6 +1006,7 @@ function renderAdultView() {
       </button>
       <button class="tab ${activeTab === "archive" ? "active" : ""}" onclick="setTab('archive')">Archive</button>
     </div>
+    ${contracts.length ? `<div class="search-row"><input id="search" class="search-input" type="search" placeholder="Search contracts…" aria-label="Search contracts" value="${esc(searchQ)}" /></div>` : ""}
     <div>${listHtml}</div>
   `;
 }
@@ -994,9 +1016,12 @@ function renderChildView() {
   const done     = contracts.filter(c => c.status === "completed");
   const list     = activeTab === "active" ? active : done;
 
-  const listHtml = list.length === 0
-    ? `<div class="empty">${activeTab === "active" ? "No contracts right now." : "No completed contracts yet."}</div>`
-    : list.map(renderCard).join("");
+  const shown = searchQ ? list.filter(c => searchMatch(searchQ, searchableFields(c))) : list;
+  const listHtml = shown.length === 0
+    ? (searchQ
+      ? `<div class="empty">No contracts match "${esc(searchQ)}".</div>`
+      : `<div class="empty">${activeTab === "active" ? "No contracts right now." : "No completed contracts yet."}</div>`)
+    : shown.map(renderCard).join("");
 
   document.getElementById("root").innerHTML = `
     <header>
@@ -1009,6 +1034,7 @@ function renderChildView() {
       <button class="tab ${activeTab === "active" ? "active" : ""}" onclick="setTab('active')">Active</button>
       <button class="tab ${activeTab === "archive" ? "active" : ""}" onclick="setTab('archive')">Completed</button>
     </div>
+    ${contracts.length ? `<div class="search-row"><input id="search" class="search-input" type="search" placeholder="Search contracts…" aria-label="Search contracts" value="${esc(searchQ)}" /></div>` : ""}
     <div>${listHtml}</div>
   `;
 }
