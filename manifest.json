@@ -62,6 +62,52 @@
       "init_columns": ["child_id", "created_by"]
     }
   },
+  "member_references": {
+    "contracts": [
+      {
+        "column": "created_by",
+        "on_removed": "keep"
+      },
+      {
+        "column": "parent_signed_by",
+        "on_removed": "keep"
+      },
+      {
+        "column": "child_id",
+        "on_removed": "keep"
+      }
+    ],
+    "contract_steps": [
+      {
+        "column": "created_by",
+        "on_removed": "keep"
+      },
+      {
+        "column": "completed_by",
+        "on_removed": "keep"
+      }
+    ],
+    "activity": [
+      {
+        "column": "actor_id",
+        "on_removed": "keep"
+      },
+      {
+        "column": "created_by",
+        "on_removed": "keep"
+      }
+    ],
+    "contract_agreements": [
+      {
+        "column": "created_by",
+        "on_removed": "keep"
+      },
+      {
+        "column": "child_id",
+        "on_removed": "keep"
+      }
+    ]
+  },
   "nav": { "label": "Contracts" },
   "resource_limits": {
     "max_db_bytes": 52428800
