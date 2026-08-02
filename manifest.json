@@ -25,6 +25,18 @@
     "requires_approval": false
   },
   "storage": "db",
+  "glance": {
+    "source": {
+      "kind": "sql",
+      "query": "SELECT COUNT(*) AS n FROM app_family_contract__contract_agreements WHERE status = 'pending' AND ((child_id = :me AND child_agreed = 0) OR (created_by = :me AND parent_agreed = 0)) LIMIT 1"
+    },
+    "display": {
+      "template": "badge",
+      "count": "n",
+      "label": "agreements to sign",
+      "severity": "warn"
+    }
+  },
   "row_policies": {
     "contracts": {
       "kind": "party_scoped",
