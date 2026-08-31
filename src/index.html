@@ -509,7 +509,7 @@ function openModal(html) {
   closeModal();
   modalEl = document.createElement("div");
   modalEl.className = "modal-backdrop";
-  modalEl.innerHTML = `<div class="modal">${html}</div>`;
+  modalEl.innerHTML = `<div class="modal" data-testid="modal">${html}</div>`;
   modalEl.addEventListener("click", e => { if (e.target === modalEl) closeModal(); });
   document.body.appendChild(modalEl);
   // Programmatic focus works inside cross-origin iframes (unlike the autofocus
@@ -744,7 +744,7 @@ function openChildWalkthrough(contract, steps) {
     : renderWalkthroughStep(current, contract.id);
 
   openModal(`
-    <h3>${esc(contract.title)}</h3>
+    <h3 data-testid="child-walkthrough" data-contract-id="${esc(contract.id)}">${esc(contract.title)}</h3>
     <div style="font-size:.82rem;color:var(--muted);margin-bottom:10px">
       Step ${completedCount + (allDone ? 0 : 1)} of ${total}
     </div>
@@ -890,7 +890,7 @@ function openContractView(contract, steps) {
       : "";
 
   openModal(`
-    <h3>📋 ${esc(contract.title)}</h3>
+    <h3 data-testid="contract-view" data-contract-id="${esc(contract.id)}">📋 ${esc(contract.title)}</h3>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
       ${statusHtml(contract.status)}
       <span style="font-size:.82rem;color:var(--muted)">For ${esc(child?.name ?? "?")}</span>
@@ -903,7 +903,7 @@ function openContractView(contract, steps) {
     ${sigBlock}
 
     <div class="modal-actions">
-      ${canVoid ? `<button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:var(--red)" onclick="voidContract('${esc(contract.id)}')">Void</button>` : ""}
+      ${canVoid ? `<button class="btn btn-ghost btn-sm" data-testid="void-btn" data-contract-id="${esc(contract.id)}" style="color:var(--red);border-color:var(--red)" onclick="voidContract('${esc(contract.id)}')">Void</button>` : ""}
       <button class="btn btn-ghost" onclick="closeModal()">Close</button>
       ${canCountersign ? `<button class="btn btn-success" onclick="parentCountersign('${esc(contract.id)}')">✍️ Countersign</button>` : ""}
     </div>
@@ -943,7 +943,7 @@ function renderCard(contract) {
   const needsChild  = contract.status === "active" && !meIsAdult && !contract.child_agreed;
 
   return `
-    <div class="contract-card ${needsParent ? "needs-action" : ""}" onclick="openContractDetail_('${esc(contract.id)}')">
+    <div class="contract-card ${needsParent ? "needs-action" : ""}" data-testid="contract-card" data-contract-id="${esc(contract.id)}" onclick="openContractDetail_('${esc(contract.id)}')">
       <div class="contract-main">
         <div class="contract-title">${esc(contract.title)}</div>
         ${meIsAdult ? `<div class="contract-meta">

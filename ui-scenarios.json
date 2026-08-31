@@ -1,0 +1,100 @@
+{
+  "scenarios": [
+    {
+      "name": "one active contract opens as a walkthrough for the child and as the parent's view for the adult",
+      "members": {
+        "parent": "adult",
+        "kid": "child"
+      },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_family_contract__contracts (id, title, child_id, created_by, status, created_at, updated_at) VALUES ('fc-1', ?, ?, ?, 'active', '2026-08-01T09:00:00Z', '2026-08-01T09:00:00Z')",
+          "params": [
+            "Phone use agreement",
+            "{{kid}}",
+            "{{parent}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title) VALUES ('fc-s1', 'fc-1', 1, 'rule', ?)",
+          "params": [
+            "Charge it downstairs overnight"
+          ]
+        },
+        {
+          "action": "open",
+          "as": "kid"
+        },
+        {
+          "action": "expectVisible",
+          "as": "kid",
+          "selector": "[data-testid=\"contract-card\"][data-contract-id=\"fc-1\"]"
+        },
+        {
+          "action": "click",
+          "as": "kid",
+          "selector": "[data-testid=\"contract-card\"][data-contract-id=\"fc-1\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "kid",
+          "selector": "[data-testid=\"modal\"]"
+        },
+        {
+          "action": "expectCount",
+          "as": "kid",
+          "selector": "[data-testid=\"contract-view\"][data-contract-id=\"fc-1\"]",
+          "count": 0
+        },
+        {
+          "action": "expectVisible",
+          "as": "kid",
+          "selector": "[data-testid=\"child-walkthrough\"][data-contract-id=\"fc-1\"]"
+        },
+        {
+          "action": "expectCount",
+          "as": "kid",
+          "selector": "[data-testid=\"void-btn\"][data-contract-id=\"fc-1\"]",
+          "count": 0
+        },
+        {
+          "action": "open",
+          "as": "parent"
+        },
+        {
+          "action": "expectVisible",
+          "as": "parent",
+          "selector": "[data-testid=\"contract-card\"][data-contract-id=\"fc-1\"]"
+        },
+        {
+          "action": "click",
+          "as": "parent",
+          "selector": "[data-testid=\"contract-card\"][data-contract-id=\"fc-1\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "parent",
+          "selector": "[data-testid=\"modal\"]"
+        },
+        {
+          "action": "expectCount",
+          "as": "parent",
+          "selector": "[data-testid=\"child-walkthrough\"][data-contract-id=\"fc-1\"]",
+          "count": 0
+        },
+        {
+          "action": "expectVisible",
+          "as": "parent",
+          "selector": "[data-testid=\"contract-view\"][data-contract-id=\"fc-1\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "parent",
+          "selector": "[data-testid=\"void-btn\"][data-contract-id=\"fc-1\"]"
+        }
+      ]
+    }
+  ]
+}
