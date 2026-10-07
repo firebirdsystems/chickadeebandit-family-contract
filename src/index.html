@@ -362,6 +362,7 @@
     .detail-section { border-top: 1px solid var(--border); padding-top: 14px; margin: 14px 0 0; }
 
     .empty { text-align: center; padding: 36px 16px; color: var(--muted); font-size: 0.9rem; }
+    .empty p { margin: 12px 0 0; }
     .loading { text-align: center; padding: 40px; color: var(--muted); }
     .search-row { margin-bottom: 12px; }
     .search-input {
@@ -379,7 +380,7 @@
 </div>
 
 <script type="module">
-import { memberColor, initial, esc, isAdult, hubConfirm, searchMatch } from "/hub-sdk.js";
+import { memberColor, initial, esc, isAdult, hubConfirm, searchMatch, glyph, chickadee } from "/hub-sdk.js";
 import { STEP_TYPES, STATUS_INFO, stepsComplete, nextIncompleteStep, formatDate, searchableFields } from "./logic.js";
 
 const CONTEXT = window.__CONTEXT_URL ?? "";
@@ -480,7 +481,7 @@ function statusHtml(status) {
   return `<span class="status-badge ${cls}">${esc(label)}</span>`;
 }
 
-function stepIcon(type) { return STEP_TYPES[type]?.icon ?? "📋"; }
+function stepIcon(type) { return glyph(STEP_TYPES[type]?.glyph ?? "checklist"); }
 function stepTypeLabel(type) { return STEP_TYPES[type]?.label ?? type; }
 
 // ─── Notifications ─────────────────────────────────────────────────────────────
@@ -595,7 +596,7 @@ function openDraftEditor(contract, steps) {
   currentContractSteps = steps;
   const child = memberMap.get(contract.child_id);
   const stepTypeOptions = Object.entries(STEP_TYPES).map(([k, v]) =>
-    `<option value="${k}">${v.icon} ${esc(v.label)}</option>`
+    `<option value="${k}">${esc(v.label)}</option>`
   ).join("");
 
   const stepsHtml = steps.length === 0
@@ -608,14 +609,14 @@ function openDraftEditor(contract, steps) {
           <div class="step-title">${esc(s.title)}</div>
           ${s.body ? `<div class="step-content" style="margin-top:3px">${esc(s.body)}</div>` : ""}
         </div>
-        <button class="draft-step-remove" onclick="removeStep('${esc(contract.id)}','${esc(s.id)}')" title="Remove">✕</button>
+        <button class="draft-step-remove" onclick="removeStep('${esc(contract.id)}','${esc(s.id)}')" title="Remove" aria-label="Remove step">${glyph("close")}</button>
       </div>
     `).join("");
 
   const canActivate = steps.length > 0;
 
   openModal(`
-    <h3>📋 ${esc(contract.title)}</h3>
+    <h3>${glyph("seal-document")} ${esc(contract.title)}</h3>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
       ${statusHtml(contract.status)}
       <span style="font-size:.82rem;color:var(--muted)">For ${esc(child?.name ?? "?")}</span>
@@ -737,7 +738,7 @@ function openChildWalkthrough(contract, steps) {
 
   const stepHtml = allDone
     ? `<div style="text-align:center;padding:20px 0">
-        <div style="font-size:2rem;margin-bottom:8px">🎉</div>
+        <div style="margin-bottom:8px">${chickadee("celebrating", { size: 88 })}</div>
         <div style="font-weight:600;margin-bottom:4px">All steps complete!</div>
         <div style="font-size:.85rem;color:var(--muted)">Tap "Sign Contract" below to finish.</div>
        </div>`
@@ -753,7 +754,7 @@ function openChildWalkthrough(contract, steps) {
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal()">Close</button>
       ${allDone
-        ? `<button class="btn btn-success" onclick="childSign('${esc(contract.id)}')">✍️ Sign Contract</button>`
+        ? `<button class="btn btn-success" onclick="childSign('${esc(contract.id)}')">${glyph("signature")} Sign Contract</button>`
         : `<button class="btn btn-primary" id="wt-continue" onclick="completeStep('${esc(contract.id)}', '${esc(current?.id ?? "")}')" disabled>Continue →</button>`
       }
     </div>
@@ -856,8 +857,8 @@ function openContractView(contract, steps) {
           <div class="step-type-label">${esc(stepTypeLabel(s.type))}</div>
           <div class="step-title">${esc(s.title)}</div>
           ${s.body ? `<div class="step-content">${esc(s.body)}</div>` : ""}
-          ${done && s.response ? `<div class="step-check">✍️ "${esc(s.response)}"</div>` : ""}
-          ${done ? `<div class="step-check">✓ Completed ${formatDate(s.completed_at)}</div>` : ""}
+          ${done && s.response ? `<div class="step-check">${glyph("signature")} "${esc(s.response)}"</div>` : ""}
+          ${done ? `<div class="step-check">${glyph("tick")} Completed ${formatDate(s.completed_at)}</div>` : ""}
         </div>
       </div>
     `;
@@ -890,7 +891,7 @@ function openContractView(contract, steps) {
       : "";
 
   openModal(`
-    <h3 data-testid="contract-view" data-contract-id="${esc(contract.id)}">📋 ${esc(contract.title)}</h3>
+    <h3 data-testid="contract-view" data-contract-id="${esc(contract.id)}">${glyph("seal-document")} ${esc(contract.title)}</h3>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
       ${statusHtml(contract.status)}
       <span style="font-size:.82rem;color:var(--muted)">For ${esc(child?.name ?? "?")}</span>
@@ -905,7 +906,7 @@ function openContractView(contract, steps) {
     <div class="modal-actions">
       ${canVoid ? `<button class="btn btn-ghost btn-sm" data-testid="void-btn" data-contract-id="${esc(contract.id)}" style="color:var(--red);border-color:var(--red)" onclick="voidContract('${esc(contract.id)}')">Void</button>` : ""}
       <button class="btn btn-ghost" onclick="closeModal()">Close</button>
-      ${canCountersign ? `<button class="btn btn-success" onclick="parentCountersign('${esc(contract.id)}')">✍️ Countersign</button>` : ""}
+      ${canCountersign ? `<button class="btn btn-success" onclick="parentCountersign('${esc(contract.id)}')">${glyph("signature")} Countersign</button>` : ""}
     </div>
   `);
 }
@@ -973,7 +974,7 @@ document.addEventListener("input", (e) => {
 
 function render() {
   if (!ME) {
-    document.getElementById("root").innerHTML = `<div class="empty">Please log in to use Family Contract.</div>`;
+    document.getElementById("root").innerHTML = `<div class="empty">${chickadee("perched")}<p>Please log in to use Family Contract.</p></div>`;
     return;
   }
   isAdult(ME) ? renderAdultView() : renderChildView();
@@ -988,14 +989,14 @@ function renderAdultView() {
   const shown = searchQ ? list.filter(c => searchMatch(searchQ, searchableFields(c))) : list;
   const listHtml = shown.length === 0
     ? (searchQ
-      ? `<div class="empty">No contracts match "${esc(searchQ)}".</div>`
-      : `<div class="empty">${activeTab === "active" ? "No active contracts. Create one to get started." : "No completed or voided contracts."}</div>`)
+      ? `<div class="empty">${chickadee("searching")}<p>No contracts match "${esc(searchQ)}".</p></div>`
+      : `<div class="empty">${chickadee("nest")}<p>${activeTab === "active" ? "No active contracts. Create one to get started." : "No completed or voided contracts."}</p></div>`)
     : shown.map(renderCard).join("");
 
   document.getElementById("root").innerHTML = `
     <header>
       <div>
-        <h1>📋 Family Contracts</h1>
+        <h1>${glyph("seal-document")} Family Contracts</h1>
         <div class="sub">Step-by-step agreements between parents and kids</div>
       </div>
       <button class="btn btn-header" onclick="openNewContractForm()">+ New</button>
@@ -1019,14 +1020,14 @@ function renderChildView() {
   const shown = searchQ ? list.filter(c => searchMatch(searchQ, searchableFields(c))) : list;
   const listHtml = shown.length === 0
     ? (searchQ
-      ? `<div class="empty">No contracts match "${esc(searchQ)}".</div>`
-      : `<div class="empty">${activeTab === "active" ? "No contracts right now." : "No completed contracts yet."}</div>`)
+      ? `<div class="empty">${chickadee("searching")}<p>No contracts match "${esc(searchQ)}".</p></div>`
+      : `<div class="empty">${chickadee(activeTab === "active" ? "sleeping" : "nest")}<p>${activeTab === "active" ? "No contracts right now." : "No completed contracts yet."}</p></div>`)
     : shown.map(renderCard).join("");
 
   document.getElementById("root").innerHTML = `
     <header>
       <div>
-        <h1>📋 My Agreements</h1>
+        <h1>${glyph("seal-document")} My Agreements</h1>
         <div class="sub">Contracts from your parents</div>
       </div>
     </header>

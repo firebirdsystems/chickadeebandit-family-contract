@@ -5,10 +5,10 @@
 
 export const STEP_TYPES = {
   video:       { label: "Watch a Video",      icon: "▶️",  bodyLabel: "Video URL",        bodyPlaceholder: "https://youtube.com/watch?v=..." },
-  acknowledge: { label: "Read & Acknowledge", icon: "📖", bodyLabel: "Statement",        bodyPlaceholder: "I understand that a dog needs to be walked every day…" },
-  commit:      { label: "Make a Commitment",  icon: "✍️",  bodyLabel: "Commitment Prompt", bodyPlaceholder: "I commit to walking the dog every morning before school." },
-  cost:        { label: "Review Costs",       icon: "💰", bodyLabel: "Cost Breakdown",   bodyPlaceholder: "Food: ~$50/month\nVet visits: ~$200/year\nSupplies: ~$100 upfront" },
-  other:       { label: "Other",              icon: "📋", bodyLabel: "Details",          bodyPlaceholder: "Describe what the child should do or understand for this step." },
+  acknowledge: { label: "Read & Acknowledge", glyph: "book-open", bodyLabel: "Statement",        bodyPlaceholder: "I understand that a dog needs to be walked every day…" },
+  commit:      { label: "Make a Commitment",  glyph: "signature", bodyLabel: "Commitment Prompt", bodyPlaceholder: "I commit to walking the dog every morning before school." },
+  cost:        { label: "Review Costs",       glyph: "coins", bodyLabel: "Cost Breakdown",   bodyPlaceholder: "Food: ~$50/month\nVet visits: ~$200/year\nSupplies: ~$100 upfront" },
+  other:       { label: "Other",              glyph: "checklist", bodyLabel: "Details",          bodyPlaceholder: "Describe what the child should do or understand for this step." },
 };
 
 export const STATUS_INFO = {
