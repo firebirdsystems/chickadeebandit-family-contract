@@ -124,5 +124,10 @@
   "resource_limits": {
     "max_db_bytes": 52428800
   },
-  "icon": "📋"
+  "icon": "📋",
+  "preload": {
+    "contracts": {
+      "sql": "SELECT c.id, c.title, c.description, c.child_id, c.created_by, c.child_signed_at, c.parent_signed_by, c.parent_signed_at, c.created_at, c.updated_at, COALESCE(ca.child_agreed, 0) AS child_agreed, COALESCE(ca.parent_agreed, 0) AS parent_agreed, CASE WHEN c.status IN ('draft', 'voided') THEN c.status WHEN ca.status = 'locked' THEN 'completed' ELSE 'active' END AS status, ca.locked_at FROM app_family_contract__contracts c LEFT JOIN app_family_contract__contract_agreements ca ON ca.id = c.id ORDER BY c.created_at DESC"
+    }
+  }
 }

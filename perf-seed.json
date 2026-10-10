@@ -1,0 +1,2413 @@
+{
+ "seed": [
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT17:00:00Z','now','-4 days'), strftime('%Y-%m-%dT20:00:00Z','now','-3 days'), ?, ?)",
+   "params": [
+    "perf-fc-01",
+    "Phone use agreement",
+    "What having your own phone means in this house.",
+    "{{child}}",
+    "{{me}}",
+    "active",
+    0,
+    0
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, updated_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT20:00:00Z','now','-3 days'))",
+   "params": [
+    "perf-fc-01",
+    "{{child}}",
+    "{{me}}",
+    0,
+    0,
+    "pending"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:10:00Z','now','-2 days'), ?, ?)",
+   "params": [
+    "perf-fs-001",
+    "perf-fc-01",
+    1,
+    "video",
+    "Watch this first",
+    "https://www.youtube.com/watch?v=perfseed01",
+    "{{child}}",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-002",
+    "perf-fc-01",
+    2,
+    "acknowledge",
+    "Read and acknowledge",
+    "I understand that this is a privilege and it can be paused if the rules are not followed.",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-003",
+    "perf-fc-01",
+    3,
+    "cost",
+    "Review the costs",
+    "Upfront: about $120\nEvery month: about $25\nIf something breaks: we split the repair",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:11:00Z','now','-4 days'), ?, ?)",
+   "params": [
+    "perf-fa-001",
+    "perf-fc-01",
+    "{{me}}",
+    "created",
+    "Perf Admin created a draft contract: \"Phone use agreement\"",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:12:00Z','now','-3 days'), ?, ?)",
+   "params": [
+    "perf-fa-002",
+    "perf-fc-01",
+    "{{me}}",
+    "activated",
+    "Perf Admin sent the contract to Perf Kid",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, child_signed_at, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT19:00:00Z','now','-4 days'), strftime('%Y-%m-%dT17:00:00Z','now','-7 days'), strftime('%Y-%m-%dT20:00:00Z','now','-4 days'), ?, ?)",
+   "params": [
+    "perf-fc-02",
+    "Getting a dog",
+    "Before we bring a dog home, we agree on who does what.",
+    "{{child2}}",
+    "{{me}}",
+    "active",
+    1,
+    0
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, updated_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT20:00:00Z','now','-4 days'))",
+   "params": [
+    "perf-fc-02",
+    "{{child2}}",
+    "{{me}}",
+    1,
+    0,
+    "pending"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:10:00Z','now','-5 days'), ?, ?)",
+   "params": [
+    "perf-fs-004",
+    "perf-fc-02",
+    1,
+    "acknowledge",
+    "Read and acknowledge",
+    "I understand that this is a privilege and it can be paused if the rules are not followed.",
+    "{{child2}}",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:15:00Z','now','-5 days'), ?, ?)",
+   "params": [
+    "perf-fs-005",
+    "perf-fc-02",
+    2,
+    "cost",
+    "Review the costs",
+    "Upfront: about $120\nEvery month: about $25\nIf something breaks: we split the repair",
+    "{{child2}}",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, response, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:20:00Z','now','-5 days'), ?, ?, ?)",
+   "params": [
+    "perf-fs-006",
+    "perf-fc-02",
+    3,
+    "commit",
+    "Make your commitment",
+    "Write in your own words what you will do every day.",
+    "{{child2}}",
+    "I will keep it in the kitchen at night and ask before downloading anything.",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:25:00Z','now','-5 days'), ?, ?)",
+   "params": [
+    "perf-fs-007",
+    "perf-fc-02",
+    4,
+    "other",
+    "Talk it through together",
+    "Sit down with a parent and go over the tricky situations.",
+    "{{child2}}",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:13:00Z','now','-7 days'), ?, ?)",
+   "params": [
+    "perf-fa-003",
+    "perf-fc-02",
+    "{{me}}",
+    "created",
+    "Perf Admin created a draft contract: \"Getting a dog\"",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:14:00Z','now','-6 days'), ?, ?)",
+   "params": [
+    "perf-fa-004",
+    "perf-fc-02",
+    "{{me}}",
+    "activated",
+    "Perf Admin sent the contract to Perf Kid Two",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT17:00:00Z','now','-3 days'), strftime('%Y-%m-%dT20:00:00Z','now','-2 days'), ?, ?)",
+   "params": [
+    "perf-fc-03",
+    "Later bedtime on weekends",
+    "A later bedtime in exchange for getting up on your own.",
+    "{{child}}",
+    "{{me}}",
+    "active",
+    0,
+    0
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, updated_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT20:00:00Z','now','-2 days'))",
+   "params": [
+    "perf-fc-03",
+    "{{child}}",
+    "{{me}}",
+    0,
+    0,
+    "pending"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:10:00Z','now','-1 days'), ?, ?)",
+   "params": [
+    "perf-fs-008",
+    "perf-fc-03",
+    1,
+    "cost",
+    "Review the costs",
+    "Upfront: about $120\nEvery month: about $25\nIf something breaks: we split the repair",
+    "{{child}}",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-009",
+    "perf-fc-03",
+    2,
+    "commit",
+    "Make your commitment",
+    "Write in your own words what you will do every day.",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-010",
+    "perf-fc-03",
+    3,
+    "other",
+    "Talk it through together",
+    "Sit down with a parent and go over the tricky situations.",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-011",
+    "perf-fc-03",
+    4,
+    "video",
+    "Watch this first",
+    "https://www.youtube.com/watch?v=perfseed01",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-012",
+    "perf-fc-03",
+    5,
+    "acknowledge",
+    "Read and acknowledge",
+    "I understand that this is a privilege and it can be paused if the rules are not followed.",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:15:00Z','now','-3 days'), ?, ?)",
+   "params": [
+    "perf-fa-005",
+    "perf-fc-03",
+    "{{me}}",
+    "created",
+    "Perf Admin created a draft contract: \"Later bedtime on weekends\"",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT17:00:00Z','now','-2 days'), strftime('%Y-%m-%dT20:00:00Z','now','-1 days'), ?, ?)",
+   "params": [
+    "perf-fc-04",
+    "Video game time",
+    "How much, when, and what comes first.",
+    "{{child2}}",
+    "{{me}}",
+    "draft",
+    0,
+    0
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-013",
+    "perf-fc-04",
+    1,
+    "commit",
+    "Make your commitment",
+    "Write in your own words what you will do every day.",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-014",
+    "perf-fc-04",
+    2,
+    "other",
+    "Talk it through together",
+    "Sit down with a parent and go over the tricky situations.",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-015",
+    "perf-fc-04",
+    3,
+    "video",
+    "Watch this first",
+    "https://www.youtube.com/watch?v=perfseed01",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:16:00Z','now','-2 days'), ?, ?)",
+   "params": [
+    "perf-fa-006",
+    "perf-fc-04",
+    "{{me}}",
+    "created",
+    "Perf Admin created a draft contract: \"Video game time\"",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, child_signed_at, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT19:00:00Z','now','-7 days'), strftime('%Y-%m-%dT17:00:00Z','now','-10 days'), strftime('%Y-%m-%dT20:00:00Z','now','-7 days'), ?, ?)",
+   "params": [
+    "perf-fc-05",
+    "Walking to school alone",
+    "The route, the check-in, and what to do if something is wrong.",
+    "{{child2}}",
+    "{{me}}",
+    "active",
+    1,
+    0
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, updated_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT20:00:00Z','now','-7 days'))",
+   "params": [
+    "perf-fc-05",
+    "{{child2}}",
+    "{{me}}",
+    1,
+    0,
+    "pending"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:10:00Z','now','-8 days'), ?, ?)",
+   "params": [
+    "perf-fs-016",
+    "perf-fc-05",
+    1,
+    "other",
+    "Talk it through together",
+    "Sit down with a parent and go over the tricky situations.",
+    "{{child2}}",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:15:00Z','now','-8 days'), ?, ?)",
+   "params": [
+    "perf-fs-017",
+    "perf-fc-05",
+    2,
+    "video",
+    "Watch this first",
+    "https://www.youtube.com/watch?v=perfseed01",
+    "{{child2}}",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:20:00Z','now','-8 days'), ?, ?)",
+   "params": [
+    "perf-fs-018",
+    "perf-fc-05",
+    3,
+    "acknowledge",
+    "Read and acknowledge",
+    "I understand that this is a privilege and it can be paused if the rules are not followed.",
+    "{{child2}}",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:25:00Z','now','-8 days'), ?, ?)",
+   "params": [
+    "perf-fs-019",
+    "perf-fc-05",
+    4,
+    "cost",
+    "Review the costs",
+    "Upfront: about $120\nEvery month: about $25\nIf something breaks: we split the repair",
+    "{{child2}}",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:17:00Z','now','-10 days'), ?, ?)",
+   "params": [
+    "perf-fa-007",
+    "perf-fc-05",
+    "{{me}}",
+    "created",
+    "Perf Admin created a draft contract: \"Walking to school alone\"",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:18:00Z','now','-9 days'), ?, ?)",
+   "params": [
+    "perf-fa-008",
+    "perf-fc-05",
+    "{{me}}",
+    "activated",
+    "Perf Admin sent the contract to Perf Kid Two",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:19:00Z','now','-7 days'), ?, ?)",
+   "params": [
+    "perf-fa-009",
+    "perf-fc-05",
+    "{{child2}}",
+    "child_signed",
+    "Perf Kid Two signed the contract",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, child_signed_at, parent_signed_by, parent_signed_at, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT19:00:00Z','now','-18 days'), ?, strftime('%Y-%m-%dT20:00:00Z','now','-17 days'), strftime('%Y-%m-%dT17:00:00Z','now','-21 days'), strftime('%Y-%m-%dT20:00:00Z','now','-17 days'), ?, ?)",
+   "params": [
+    "perf-fc-06",
+    "Allowance and saving",
+    "What allowance is for and how much gets saved.",
+    "{{child}}",
+    "{{me}}",
+    "active",
+    "{{me}}",
+    1,
+    1
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, locked_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT20:00:00Z','now','-17 days'), strftime('%Y-%m-%dT20:00:00Z','now','-17 days'))",
+   "params": [
+    "perf-fc-06",
+    "{{child}}",
+    "{{me}}",
+    1,
+    1,
+    "locked"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:10:00Z','now','-19 days'), ?, ?)",
+   "params": [
+    "perf-fs-020",
+    "perf-fc-06",
+    1,
+    "video",
+    "Watch this first",
+    "https://www.youtube.com/watch?v=perfseed01",
+    "{{child}}",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:15:00Z','now','-19 days'), ?, ?)",
+   "params": [
+    "perf-fs-021",
+    "perf-fc-06",
+    2,
+    "acknowledge",
+    "Read and acknowledge",
+    "I understand that this is a privilege and it can be paused if the rules are not followed.",
+    "{{child}}",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:20:00Z','now','-19 days'), ?, ?)",
+   "params": [
+    "perf-fs-022",
+    "perf-fc-06",
+    3,
+    "cost",
+    "Review the costs",
+    "Upfront: about $120\nEvery month: about $25\nIf something breaks: we split the repair",
+    "{{child}}",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, response, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:25:00Z','now','-19 days'), ?, ?, ?)",
+   "params": [
+    "perf-fs-023",
+    "perf-fc-06",
+    4,
+    "commit",
+    "Make your commitment",
+    "Write in your own words what you will do every day.",
+    "{{child}}",
+    "I will save half and only spend my own money.",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:30:00Z','now','-19 days'), ?, ?)",
+   "params": [
+    "perf-fs-024",
+    "perf-fc-06",
+    5,
+    "other",
+    "Talk it through together",
+    "Sit down with a parent and go over the tricky situations.",
+    "{{child}}",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:20:00Z','now','-21 days'), ?, ?)",
+   "params": [
+    "perf-fa-010",
+    "perf-fc-06",
+    "{{me}}",
+    "created",
+    "Perf Admin created a draft contract: \"Allowance and saving\"",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, child_signed_at, parent_signed_by, parent_signed_at, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT19:00:00Z','now','-30 days'), ?, strftime('%Y-%m-%dT20:00:00Z','now','-29 days'), strftime('%Y-%m-%dT17:00:00Z','now','-33 days'), strftime('%Y-%m-%dT20:00:00Z','now','-29 days'), ?, ?)",
+   "params": [
+    "perf-fc-07",
+    "First sleepover away",
+    "Rules for staying at a friend's house.",
+    "{{child2}}",
+    "{{me}}",
+    "active",
+    "{{me}}",
+    1,
+    1
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, locked_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT20:00:00Z','now','-29 days'), strftime('%Y-%m-%dT20:00:00Z','now','-29 days'))",
+   "params": [
+    "perf-fc-07",
+    "{{child2}}",
+    "{{me}}",
+    1,
+    1,
+    "locked"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:10:00Z','now','-31 days'), ?, ?)",
+   "params": [
+    "perf-fs-025",
+    "perf-fc-07",
+    1,
+    "acknowledge",
+    "Read and acknowledge",
+    "I understand that this is a privilege and it can be paused if the rules are not followed.",
+    "{{child2}}",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:15:00Z','now','-31 days'), ?, ?)",
+   "params": [
+    "perf-fs-026",
+    "perf-fc-07",
+    2,
+    "cost",
+    "Review the costs",
+    "Upfront: about $120\nEvery month: about $25\nIf something breaks: we split the repair",
+    "{{child2}}",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, response, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:20:00Z','now','-31 days'), ?, ?, ?)",
+   "params": [
+    "perf-fs-027",
+    "perf-fc-07",
+    3,
+    "commit",
+    "Make your commitment",
+    "Write in your own words what you will do every day.",
+    "{{child2}}",
+    "I will save half and only spend my own money.",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:21:00Z','now','-33 days'), ?, ?)",
+   "params": [
+    "perf-fa-011",
+    "perf-fc-07",
+    "{{me}}",
+    "created",
+    "Perf Admin created a draft contract: \"First sleepover away\"",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:22:00Z','now','-32 days'), ?, ?)",
+   "params": [
+    "perf-fa-012",
+    "perf-fc-07",
+    "{{me}}",
+    "activated",
+    "Perf Admin sent the contract to Perf Kid Two",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:23:00Z','now','-30 days'), ?, ?)",
+   "params": [
+    "perf-fa-013",
+    "perf-fc-07",
+    "{{child2}}",
+    "child_signed",
+    "Perf Kid Two signed the contract",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:24:00Z','now','-29 days'), ?, ?)",
+   "params": [
+    "perf-fa-014",
+    "perf-fc-07",
+    "{{me}}",
+    "completed",
+    "Perf Admin countersigned — contract is complete",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, child_signed_at, parent_signed_by, parent_signed_at, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT19:00:00Z','now','-43 days'), ?, strftime('%Y-%m-%dT20:00:00Z','now','-42 days'), strftime('%Y-%m-%dT17:00:00Z','now','-46 days'), strftime('%Y-%m-%dT20:00:00Z','now','-42 days'), ?, ?)",
+   "params": [
+    "perf-fc-08",
+    "Riding a bike on the road",
+    "Helmet, lights, and the streets you may use.",
+    "{{child}}",
+    "{{me}}",
+    "active",
+    "{{me}}",
+    1,
+    1
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, locked_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT20:00:00Z','now','-42 days'), strftime('%Y-%m-%dT20:00:00Z','now','-42 days'))",
+   "params": [
+    "perf-fc-08",
+    "{{child}}",
+    "{{me}}",
+    1,
+    1,
+    "locked"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:10:00Z','now','-44 days'), ?, ?)",
+   "params": [
+    "perf-fs-028",
+    "perf-fc-08",
+    1,
+    "cost",
+    "Review the costs",
+    "Upfront: about $120\nEvery month: about $25\nIf something breaks: we split the repair",
+    "{{child}}",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, response, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:15:00Z','now','-44 days'), ?, ?, ?)",
+   "params": [
+    "perf-fs-029",
+    "perf-fc-08",
+    2,
+    "commit",
+    "Make your commitment",
+    "Write in your own words what you will do every day.",
+    "{{child}}",
+    "I promise to check in when I get there and when I leave.",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:20:00Z','now','-44 days'), ?, ?)",
+   "params": [
+    "perf-fs-030",
+    "perf-fc-08",
+    3,
+    "other",
+    "Talk it through together",
+    "Sit down with a parent and go over the tricky situations.",
+    "{{child}}",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:25:00Z','now','-44 days'), ?, ?)",
+   "params": [
+    "perf-fs-031",
+    "perf-fc-08",
+    4,
+    "video",
+    "Watch this first",
+    "https://www.youtube.com/watch?v=perfseed01",
+    "{{child}}",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:25:00Z','now','-46 days'), ?, ?)",
+   "params": [
+    "perf-fa-015",
+    "perf-fc-08",
+    "{{me}}",
+    "created",
+    "Perf Admin created a draft contract: \"Riding a bike on the road\"",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:26:00Z','now','-45 days'), ?, ?)",
+   "params": [
+    "perf-fa-016",
+    "perf-fc-08",
+    "{{me}}",
+    "activated",
+    "Perf Admin sent the contract to Perf Kid",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT17:00:00Z','now','-6 days'), strftime('%Y-%m-%dT20:00:00Z','now','-5 days'), ?, ?)",
+   "params": [
+    "perf-fc-09",
+    "Social media account",
+    "Opening a first account, with us following it.",
+    "{{child}}",
+    "{{me}}",
+    "active",
+    0,
+    0
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, updated_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT20:00:00Z','now','-5 days'))",
+   "params": [
+    "perf-fc-09",
+    "{{child}}",
+    "{{me}}",
+    0,
+    0,
+    "pending"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, response, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:10:00Z','now','-4 days'), ?, ?, ?)",
+   "params": [
+    "perf-fs-032",
+    "perf-fc-09",
+    1,
+    "commit",
+    "Make your commitment",
+    "Write in your own words what you will do every day.",
+    "{{child}}",
+    "I will do it every morning before school without being asked.",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-033",
+    "perf-fc-09",
+    2,
+    "other",
+    "Talk it through together",
+    "Sit down with a parent and go over the tricky situations.",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-034",
+    "perf-fc-09",
+    3,
+    "video",
+    "Watch this first",
+    "https://www.youtube.com/watch?v=perfseed01",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-035",
+    "perf-fc-09",
+    4,
+    "acknowledge",
+    "Read and acknowledge",
+    "I understand that this is a privilege and it can be paused if the rules are not followed.",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-036",
+    "perf-fc-09",
+    5,
+    "cost",
+    "Review the costs",
+    "Upfront: about $120\nEvery month: about $25\nIf something breaks: we split the repair",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:27:00Z','now','-6 days'), ?, ?)",
+   "params": [
+    "perf-fa-017",
+    "perf-fc-09",
+    "{{me}}",
+    "created",
+    "Perf Admin created a draft contract: \"Social media account\"",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, child_signed_at, parent_signed_by, parent_signed_at, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT19:00:00Z','now','-58 days'), ?, strftime('%Y-%m-%dT20:00:00Z','now','-57 days'), strftime('%Y-%m-%dT17:00:00Z','now','-61 days'), strftime('%Y-%m-%dT20:00:00Z','now','-57 days'), ?, ?)",
+   "params": [
+    "perf-fc-10",
+    "Staying home alone",
+    "An hour at a time, with the door locked.",
+    "{{child}}",
+    "{{me}}",
+    "active",
+    "{{me}}",
+    1,
+    1
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, locked_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT20:00:00Z','now','-57 days'), strftime('%Y-%m-%dT20:00:00Z','now','-57 days'))",
+   "params": [
+    "perf-fc-10",
+    "{{child}}",
+    "{{me}}",
+    1,
+    1,
+    "locked"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:10:00Z','now','-59 days'), ?, ?)",
+   "params": [
+    "perf-fs-037",
+    "perf-fc-10",
+    1,
+    "other",
+    "Talk it through together",
+    "Sit down with a parent and go over the tricky situations.",
+    "{{child}}",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:15:00Z','now','-59 days'), ?, ?)",
+   "params": [
+    "perf-fs-038",
+    "perf-fc-10",
+    2,
+    "video",
+    "Watch this first",
+    "https://www.youtube.com/watch?v=perfseed01",
+    "{{child}}",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:20:00Z','now','-59 days'), ?, ?)",
+   "params": [
+    "perf-fs-039",
+    "perf-fc-10",
+    3,
+    "acknowledge",
+    "Read and acknowledge",
+    "I understand that this is a privilege and it can be paused if the rules are not followed.",
+    "{{child}}",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:28:00Z','now','-61 days'), ?, ?)",
+   "params": [
+    "perf-fa-018",
+    "perf-fc-10",
+    "{{me}}",
+    "created",
+    "Perf Admin created a draft contract: \"Staying home alone\"",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:29:00Z','now','-60 days'), ?, ?)",
+   "params": [
+    "perf-fa-019",
+    "perf-fc-10",
+    "{{me}}",
+    "activated",
+    "Perf Admin sent the contract to Perf Kid",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:30:00Z','now','-57 days'), ?, ?)",
+   "params": [
+    "perf-fa-020",
+    "perf-fc-10",
+    "{{me}}",
+    "completed",
+    "Perf Admin countersigned — contract is complete",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, child_signed_at, parent_signed_by, parent_signed_at, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT19:00:00Z','now','-73 days'), ?, strftime('%Y-%m-%dT20:00:00Z','now','-72 days'), strftime('%Y-%m-%dT17:00:00Z','now','-76 days'), strftime('%Y-%m-%dT20:00:00Z','now','-72 days'), ?, ?)",
+   "params": [
+    "perf-fc-11",
+    "Hamster care",
+    "The hamster is yours, and so is the cage cleaning.",
+    "{{child2}}",
+    "{{me}}",
+    "active",
+    "{{me}}",
+    1,
+    1
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, locked_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT20:00:00Z','now','-72 days'), strftime('%Y-%m-%dT20:00:00Z','now','-72 days'))",
+   "params": [
+    "perf-fc-11",
+    "{{child2}}",
+    "{{me}}",
+    1,
+    1,
+    "locked"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:10:00Z','now','-74 days'), ?, ?)",
+   "params": [
+    "perf-fs-040",
+    "perf-fc-11",
+    1,
+    "video",
+    "Watch this first",
+    "https://www.youtube.com/watch?v=perfseed01",
+    "{{child2}}",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:15:00Z','now','-74 days'), ?, ?)",
+   "params": [
+    "perf-fs-041",
+    "perf-fc-11",
+    2,
+    "acknowledge",
+    "Read and acknowledge",
+    "I understand that this is a privilege and it can be paused if the rules are not followed.",
+    "{{child2}}",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:20:00Z','now','-74 days'), ?, ?)",
+   "params": [
+    "perf-fs-042",
+    "perf-fc-11",
+    3,
+    "cost",
+    "Review the costs",
+    "Upfront: about $120\nEvery month: about $25\nIf something breaks: we split the repair",
+    "{{child2}}",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, response, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:25:00Z','now','-74 days'), ?, ?, ?)",
+   "params": [
+    "perf-fs-043",
+    "perf-fc-11",
+    4,
+    "commit",
+    "Make your commitment",
+    "Write in your own words what you will do every day.",
+    "{{child2}}",
+    "I will save half and only spend my own money.",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:31:00Z','now','-76 days'), ?, ?)",
+   "params": [
+    "perf-fa-021",
+    "perf-fc-11",
+    "{{me}}",
+    "created",
+    "Perf Admin created a draft contract: \"Hamster care\"",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:32:00Z','now','-75 days'), ?, ?)",
+   "params": [
+    "perf-fa-022",
+    "perf-fc-11",
+    "{{me}}",
+    "activated",
+    "Perf Admin sent the contract to Perf Kid Two",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:33:00Z','now','-73 days'), ?, ?)",
+   "params": [
+    "perf-fa-023",
+    "perf-fc-11",
+    "{{child2}}",
+    "child_signed",
+    "Perf Kid Two signed the contract",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT17:00:00Z','now','-51 days'), strftime('%Y-%m-%dT20:00:00Z','now','-50 days'), ?, ?)",
+   "params": [
+    "perf-fc-12",
+    "Screen-free dinners",
+    "Everyone's devices, including ours.",
+    "{{child}}",
+    "{{me}}",
+    "voided",
+    0,
+    0
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, updated_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT20:00:00Z','now','-50 days'))",
+   "params": [
+    "perf-fc-12",
+    "{{child}}",
+    "{{me}}",
+    0,
+    0,
+    "pending"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-044",
+    "perf-fc-12",
+    1,
+    "acknowledge",
+    "Read and acknowledge",
+    "I understand that this is a privilege and it can be paused if the rules are not followed.",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-045",
+    "perf-fc-12",
+    2,
+    "cost",
+    "Review the costs",
+    "Upfront: about $120\nEvery month: about $25\nIf something breaks: we split the repair",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-046",
+    "perf-fc-12",
+    3,
+    "commit",
+    "Make your commitment",
+    "Write in your own words what you will do every day.",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-047",
+    "perf-fc-12",
+    4,
+    "other",
+    "Talk it through together",
+    "Sit down with a parent and go over the tricky situations.",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-048",
+    "perf-fc-12",
+    5,
+    "video",
+    "Watch this first",
+    "https://www.youtube.com/watch?v=perfseed01",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:34:00Z','now','-51 days'), ?, ?)",
+   "params": [
+    "perf-fa-024",
+    "perf-fc-12",
+    "{{me}}",
+    "created",
+    "Perf Admin created a draft contract: \"Screen-free dinners\"",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:35:00Z','now','-45 days'), ?, ?)",
+   "params": [
+    "perf-fa-025",
+    "perf-fc-12",
+    "{{me}}",
+    "voided",
+    "Perf Admin voided the contract",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, child_signed_at, parent_signed_by, parent_signed_at, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT19:00:00Z','now','-93 days'), ?, strftime('%Y-%m-%dT20:00:00Z','now','-92 days'), strftime('%Y-%m-%dT17:00:00Z','now','-96 days'), strftime('%Y-%m-%dT20:00:00Z','now','-92 days'), ?, ?)",
+   "params": [
+    "perf-fc-13",
+    "Summer job",
+    "Hours, money and still doing chores.",
+    "{{child}}",
+    "{{me}}",
+    "active",
+    "{{me}}",
+    1,
+    1
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, locked_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT20:00:00Z','now','-92 days'), strftime('%Y-%m-%dT20:00:00Z','now','-92 days'))",
+   "params": [
+    "perf-fc-13",
+    "{{child}}",
+    "{{me}}",
+    1,
+    1,
+    "locked"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:10:00Z','now','-94 days'), ?, ?)",
+   "params": [
+    "perf-fs-049",
+    "perf-fc-13",
+    1,
+    "cost",
+    "Review the costs",
+    "Upfront: about $120\nEvery month: about $25\nIf something breaks: we split the repair",
+    "{{child}}",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, response, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:15:00Z','now','-94 days'), ?, ?, ?)",
+   "params": [
+    "perf-fs-050",
+    "perf-fc-13",
+    2,
+    "commit",
+    "Make your commitment",
+    "Write in your own words what you will do every day.",
+    "{{child}}",
+    "I will keep it in the kitchen at night and ask before downloading anything.",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:20:00Z','now','-94 days'), ?, ?)",
+   "params": [
+    "perf-fs-051",
+    "perf-fc-13",
+    3,
+    "other",
+    "Talk it through together",
+    "Sit down with a parent and go over the tricky situations.",
+    "{{child}}",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:36:00Z','now','-96 days'), ?, ?)",
+   "params": [
+    "perf-fa-026",
+    "perf-fc-13",
+    "{{me}}",
+    "created",
+    "Perf Admin created a draft contract: \"Summer job\"",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:37:00Z','now','-95 days'), ?, ?)",
+   "params": [
+    "perf-fa-027",
+    "perf-fc-13",
+    "{{me}}",
+    "activated",
+    "Perf Admin sent the contract to Perf Kid",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:38:00Z','now','-93 days'), ?, ?)",
+   "params": [
+    "perf-fa-028",
+    "perf-fc-13",
+    "{{child}}",
+    "child_signed",
+    "Perf Kid signed the contract",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:39:00Z','now','-92 days'), ?, ?)",
+   "params": [
+    "perf-fa-029",
+    "perf-fc-13",
+    "{{me}}",
+    "completed",
+    "Perf Admin countersigned — contract is complete",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, child_signed_at, parent_signed_by, parent_signed_at, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT19:00:00Z','now','-108 days'), ?, strftime('%Y-%m-%dT20:00:00Z','now','-107 days'), strftime('%Y-%m-%dT17:00:00Z','now','-111 days'), strftime('%Y-%m-%dT20:00:00Z','now','-107 days'), ?, ?)",
+   "params": [
+    "perf-fc-14",
+    "Music lessons commitment",
+    "A full term before deciding to stop.",
+    "{{child2}}",
+    "{{me}}",
+    "active",
+    "{{me}}",
+    1,
+    1
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, locked_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT20:00:00Z','now','-107 days'), strftime('%Y-%m-%dT20:00:00Z','now','-107 days'))",
+   "params": [
+    "perf-fc-14",
+    "{{child2}}",
+    "{{me}}",
+    1,
+    1,
+    "locked"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, response, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:10:00Z','now','-109 days'), ?, ?, ?)",
+   "params": [
+    "perf-fs-052",
+    "perf-fc-14",
+    1,
+    "commit",
+    "Make your commitment",
+    "Write in your own words what you will do every day.",
+    "{{child2}}",
+    "I will do it every morning before school without being asked.",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:15:00Z','now','-109 days'), ?, ?)",
+   "params": [
+    "perf-fs-053",
+    "perf-fc-14",
+    2,
+    "other",
+    "Talk it through together",
+    "Sit down with a parent and go over the tricky situations.",
+    "{{child2}}",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:20:00Z','now','-109 days'), ?, ?)",
+   "params": [
+    "perf-fs-054",
+    "perf-fc-14",
+    3,
+    "video",
+    "Watch this first",
+    "https://www.youtube.com/watch?v=perfseed01",
+    "{{child2}}",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:25:00Z','now','-109 days'), ?, ?)",
+   "params": [
+    "perf-fs-055",
+    "perf-fc-14",
+    4,
+    "acknowledge",
+    "Read and acknowledge",
+    "I understand that this is a privilege and it can be paused if the rules are not followed.",
+    "{{child2}}",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:40:00Z','now','-110 days'), ?, ?)",
+   "params": [
+    "perf-fa-030",
+    "perf-fc-14",
+    "{{me}}",
+    "activated",
+    "Perf Admin sent the contract to Perf Kid Two",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT17:00:00Z','now','-5 days'), strftime('%Y-%m-%dT20:00:00Z','now','-4 days'), ?, ?)",
+   "params": [
+    "perf-fc-15",
+    "Using the kitchen stove",
+    "What you may cook without an adult in the room.",
+    "{{child2}}",
+    "{{me}}",
+    "draft",
+    0,
+    0
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-056",
+    "perf-fc-15",
+    1,
+    "other",
+    "Talk it through together",
+    "Sit down with a parent and go over the tricky situations.",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-057",
+    "perf-fc-15",
+    2,
+    "video",
+    "Watch this first",
+    "https://www.youtube.com/watch?v=perfseed01",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-058",
+    "perf-fc-15",
+    3,
+    "acknowledge",
+    "Read and acknowledge",
+    "I understand that this is a privilege and it can be paused if the rules are not followed.",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-059",
+    "perf-fc-15",
+    4,
+    "cost",
+    "Review the costs",
+    "Upfront: about $120\nEvery month: about $25\nIf something breaks: we split the repair",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-060",
+    "perf-fc-15",
+    5,
+    "commit",
+    "Make your commitment",
+    "Write in your own words what you will do every day.",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:41:00Z','now','-5 days'), ?, ?)",
+   "params": [
+    "perf-fa-031",
+    "perf-fc-15",
+    "{{me}}",
+    "created",
+    "Perf Admin created a draft contract: \"Using the kitchen stove\"",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT17:00:00Z','now','-86 days'), strftime('%Y-%m-%dT20:00:00Z','now','-85 days'), ?, ?)",
+   "params": [
+    "perf-fc-16",
+    "Borrowing the tablet",
+    "It belongs to the family; here is how borrowing works.",
+    "{{child2}}",
+    "{{me}}",
+    "voided",
+    0,
+    0
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, updated_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT20:00:00Z','now','-85 days'))",
+   "params": [
+    "perf-fc-16",
+    "{{child2}}",
+    "{{me}}",
+    0,
+    0,
+    "pending"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-061",
+    "perf-fc-16",
+    1,
+    "video",
+    "Watch this first",
+    "https://www.youtube.com/watch?v=perfseed01",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-062",
+    "perf-fc-16",
+    2,
+    "acknowledge",
+    "Read and acknowledge",
+    "I understand that this is a privilege and it can be paused if the rules are not followed.",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-063",
+    "perf-fc-16",
+    3,
+    "cost",
+    "Review the costs",
+    "Upfront: about $120\nEvery month: about $25\nIf something breaks: we split the repair",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:42:00Z','now','-85 days'), ?, ?)",
+   "params": [
+    "perf-fa-032",
+    "perf-fc-16",
+    "{{me}}",
+    "activated",
+    "Perf Admin sent the contract to Perf Kid Two",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:43:00Z','now','-80 days'), ?, ?)",
+   "params": [
+    "perf-fa-033",
+    "perf-fc-16",
+    "{{me}}",
+    "voided",
+    "Perf Admin voided the contract",
+    "{{child2}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, child_signed_at, parent_signed_by, parent_signed_at, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT19:00:00Z','now','-128 days'), ?, strftime('%Y-%m-%dT20:00:00Z','now','-127 days'), strftime('%Y-%m-%dT17:00:00Z','now','-131 days'), strftime('%Y-%m-%dT20:00:00Z','now','-127 days'), ?, ?)",
+   "params": [
+    "perf-fc-17",
+    "Online purchases",
+    "Asking first, every time.",
+    "{{child}}",
+    "{{me}}",
+    "active",
+    "{{me}}",
+    1,
+    1
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, locked_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT20:00:00Z','now','-127 days'), strftime('%Y-%m-%dT20:00:00Z','now','-127 days'))",
+   "params": [
+    "perf-fc-17",
+    "{{child}}",
+    "{{me}}",
+    1,
+    1,
+    "locked"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:10:00Z','now','-129 days'), ?, ?)",
+   "params": [
+    "perf-fs-064",
+    "perf-fc-17",
+    1,
+    "acknowledge",
+    "Read and acknowledge",
+    "I understand that this is a privilege and it can be paused if the rules are not followed.",
+    "{{child}}",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:15:00Z','now','-129 days'), ?, ?)",
+   "params": [
+    "perf-fs-065",
+    "perf-fc-17",
+    2,
+    "cost",
+    "Review the costs",
+    "Upfront: about $120\nEvery month: about $25\nIf something breaks: we split the repair",
+    "{{child}}",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, response, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:20:00Z','now','-129 days'), ?, ?, ?)",
+   "params": [
+    "perf-fs-066",
+    "perf-fc-17",
+    3,
+    "commit",
+    "Make your commitment",
+    "Write in your own words what you will do every day.",
+    "{{child}}",
+    "I will keep it in the kitchen at night and ask before downloading anything.",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:25:00Z','now','-129 days'), ?, ?)",
+   "params": [
+    "perf-fs-067",
+    "perf-fc-17",
+    4,
+    "other",
+    "Talk it through together",
+    "Sit down with a parent and go over the tricky situations.",
+    "{{child}}",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:44:00Z','now','-131 days'), ?, ?)",
+   "params": [
+    "perf-fa-034",
+    "perf-fc-17",
+    "{{me}}",
+    "created",
+    "Perf Admin created a draft contract: \"Online purchases\"",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:45:00Z','now','-130 days'), ?, ?)",
+   "params": [
+    "perf-fa-035",
+    "perf-fc-17",
+    "{{me}}",
+    "activated",
+    "Perf Admin sent the contract to Perf Kid",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:46:00Z','now','-128 days'), ?, ?)",
+   "params": [
+    "perf-fa-036",
+    "perf-fc-17",
+    "{{child}}",
+    "child_signed",
+    "Perf Kid signed the contract",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, child_signed_at, parent_signed_by, parent_signed_at, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT19:00:00Z','now','-148 days'), ?, strftime('%Y-%m-%dT20:00:00Z','now','-147 days'), strftime('%Y-%m-%dT17:00:00Z','now','-151 days'), strftime('%Y-%m-%dT20:00:00Z','now','-147 days'), ?, ?)",
+   "params": [
+    "perf-fc-18",
+    "Curfew for school nights",
+    "Home by 8:30, phone answered.",
+    "{{child}}",
+    "{{me}}",
+    "active",
+    "{{me}}",
+    1,
+    1
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, locked_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT20:00:00Z','now','-147 days'), strftime('%Y-%m-%dT20:00:00Z','now','-147 days'))",
+   "params": [
+    "perf-fc-18",
+    "{{child}}",
+    "{{me}}",
+    1,
+    1,
+    "locked"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:10:00Z','now','-149 days'), ?, ?)",
+   "params": [
+    "perf-fs-068",
+    "perf-fc-18",
+    1,
+    "cost",
+    "Review the costs",
+    "Upfront: about $120\nEvery month: about $25\nIf something breaks: we split the repair",
+    "{{child}}",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, response, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:15:00Z','now','-149 days'), ?, ?, ?)",
+   "params": [
+    "perf-fs-069",
+    "perf-fc-18",
+    2,
+    "commit",
+    "Make your commitment",
+    "Write in your own words what you will do every day.",
+    "{{child}}",
+    "I promise to check in when I get there and when I leave.",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:20:00Z','now','-149 days'), ?, ?)",
+   "params": [
+    "perf-fs-070",
+    "perf-fc-18",
+    3,
+    "other",
+    "Talk it through together",
+    "Sit down with a parent and go over the tricky situations.",
+    "{{child}}",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:25:00Z','now','-149 days'), ?, ?)",
+   "params": [
+    "perf-fs-071",
+    "perf-fc-18",
+    4,
+    "video",
+    "Watch this first",
+    "https://www.youtube.com/watch?v=perfseed01",
+    "{{child}}",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:30:00Z','now','-149 days'), ?, ?)",
+   "params": [
+    "perf-fs-072",
+    "perf-fc-18",
+    5,
+    "acknowledge",
+    "Read and acknowledge",
+    "I understand that this is a privilege and it can be paused if the rules are not followed.",
+    "{{child}}",
+    "{{child}}",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT17:00:00Z','now','-8 days'), strftime('%Y-%m-%dT20:00:00Z','now','-7 days'), ?, ?)",
+   "params": [
+    "perf-fc-19",
+    "Laptop for homework",
+    "Stays in the living room on school nights.",
+    "{{child}}",
+    "{{partner}}",
+    "active",
+    0,
+    0
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, updated_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT20:00:00Z','now','-7 days'))",
+   "params": [
+    "perf-fc-19",
+    "{{child}}",
+    "{{partner}}",
+    0,
+    0,
+    "pending"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, response, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:10:00Z','now','-6 days'), ?, ?, ?)",
+   "params": [
+    "perf-fs-073",
+    "perf-fc-19",
+    1,
+    "commit",
+    "Make your commitment",
+    "Write in your own words what you will do every day.",
+    "{{child}}",
+    "I promise to check in when I get there and when I leave.",
+    "{{child}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-074",
+    "perf-fc-19",
+    2,
+    "other",
+    "Talk it through together",
+    "Sit down with a parent and go over the tricky situations.",
+    "{{child}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-075",
+    "perf-fc-19",
+    3,
+    "video",
+    "Watch this first",
+    "https://www.youtube.com/watch?v=perfseed01",
+    "{{child}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:47:00Z','now','-8 days'), ?, ?)",
+   "params": [
+    "perf-fa-037",
+    "perf-fc-19",
+    "{{partner}}",
+    "created",
+    "Perf Partner created a draft contract: \"Laptop for homework\"",
+    "{{child}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:48:00Z','now','-7 days'), ?, ?)",
+   "params": [
+    "perf-fa-038",
+    "perf-fc-19",
+    "{{partner}}",
+    "activated",
+    "Perf Partner sent the contract to Perf Kid",
+    "{{child}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, child_signed_at, parent_signed_by, parent_signed_at, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT19:00:00Z','now','-38 days'), ?, strftime('%Y-%m-%dT20:00:00Z','now','-37 days'), strftime('%Y-%m-%dT17:00:00Z','now','-41 days'), strftime('%Y-%m-%dT20:00:00Z','now','-37 days'), ?, ?)",
+   "params": [
+    "perf-fc-20",
+    "Team sports commitment",
+    "Finishing the season you signed up for.",
+    "{{child2}}",
+    "{{partner}}",
+    "active",
+    "{{partner}}",
+    1,
+    1
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, locked_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT20:00:00Z','now','-37 days'), strftime('%Y-%m-%dT20:00:00Z','now','-37 days'))",
+   "params": [
+    "perf-fc-20",
+    "{{child2}}",
+    "{{partner}}",
+    1,
+    1,
+    "locked"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:10:00Z','now','-39 days'), ?, ?)",
+   "params": [
+    "perf-fs-076",
+    "perf-fc-20",
+    1,
+    "other",
+    "Talk it through together",
+    "Sit down with a parent and go over the tricky situations.",
+    "{{child2}}",
+    "{{child2}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:15:00Z','now','-39 days'), ?, ?)",
+   "params": [
+    "perf-fs-077",
+    "perf-fc-20",
+    2,
+    "video",
+    "Watch this first",
+    "https://www.youtube.com/watch?v=perfseed01",
+    "{{child2}}",
+    "{{child2}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:20:00Z','now','-39 days'), ?, ?)",
+   "params": [
+    "perf-fs-078",
+    "perf-fc-20",
+    3,
+    "acknowledge",
+    "Read and acknowledge",
+    "I understand that this is a privilege and it can be paused if the rules are not followed.",
+    "{{child2}}",
+    "{{child2}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:25:00Z','now','-39 days'), ?, ?)",
+   "params": [
+    "perf-fs-079",
+    "perf-fc-20",
+    4,
+    "cost",
+    "Review the costs",
+    "Upfront: about $120\nEvery month: about $25\nIf something breaks: we split the repair",
+    "{{child2}}",
+    "{{child2}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:49:00Z','now','-40 days'), ?, ?)",
+   "params": [
+    "perf-fa-039",
+    "perf-fc-20",
+    "{{partner}}",
+    "activated",
+    "Perf Partner sent the contract to Perf Kid Two",
+    "{{child2}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, child_signed_at, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT19:00:00Z','now','-10 days'), strftime('%Y-%m-%dT17:00:00Z','now','-13 days'), strftime('%Y-%m-%dT20:00:00Z','now','-10 days'), ?, ?)",
+   "params": [
+    "perf-fc-21",
+    "Pocket knife for camping",
+    "Where it lives and when it comes out.",
+    "{{child}}",
+    "{{partner}}",
+    "active",
+    1,
+    0
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, updated_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT20:00:00Z','now','-10 days'))",
+   "params": [
+    "perf-fc-21",
+    "{{child}}",
+    "{{partner}}",
+    1,
+    0,
+    "pending"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:10:00Z','now','-11 days'), ?, ?)",
+   "params": [
+    "perf-fs-080",
+    "perf-fc-21",
+    1,
+    "video",
+    "Watch this first",
+    "https://www.youtube.com/watch?v=perfseed01",
+    "{{child}}",
+    "{{child}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:15:00Z','now','-11 days'), ?, ?)",
+   "params": [
+    "perf-fs-081",
+    "perf-fc-21",
+    2,
+    "acknowledge",
+    "Read and acknowledge",
+    "I understand that this is a privilege and it can be paused if the rules are not followed.",
+    "{{child}}",
+    "{{child}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:20:00Z','now','-11 days'), ?, ?)",
+   "params": [
+    "perf-fs-082",
+    "perf-fc-21",
+    3,
+    "cost",
+    "Review the costs",
+    "Upfront: about $120\nEvery month: about $25\nIf something breaks: we split the repair",
+    "{{child}}",
+    "{{child}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, response, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:25:00Z','now','-11 days'), ?, ?, ?)",
+   "params": [
+    "perf-fs-083",
+    "perf-fc-21",
+    4,
+    "commit",
+    "Make your commitment",
+    "Write in your own words what you will do every day.",
+    "{{child}}",
+    "I will save half and only spend my own money.",
+    "{{child}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:30:00Z','now','-11 days'), ?, ?)",
+   "params": [
+    "perf-fs-084",
+    "perf-fc-21",
+    5,
+    "other",
+    "Talk it through together",
+    "Sit down with a parent and go over the tricky situations.",
+    "{{child}}",
+    "{{child}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:50:00Z','now','-13 days'), ?, ?)",
+   "params": [
+    "perf-fa-040",
+    "perf-fc-21",
+    "{{partner}}",
+    "created",
+    "Perf Partner created a draft contract: \"Pocket knife for camping\"",
+    "{{child}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:51:00Z','now','-10 days'), ?, ?)",
+   "params": [
+    "perf-fa-041",
+    "perf-fc-21",
+    "{{child}}",
+    "child_signed",
+    "Perf Kid signed the contract",
+    "{{child}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, child_signed_at, parent_signed_by, parent_signed_at, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT19:00:00Z','now','-68 days'), ?, strftime('%Y-%m-%dT20:00:00Z','now','-67 days'), strftime('%Y-%m-%dT17:00:00Z','now','-71 days'), strftime('%Y-%m-%dT20:00:00Z','now','-67 days'), ?, ?)",
+   "params": [
+    "perf-fc-22",
+    "Trampoline rules",
+    "One at a time. Really.",
+    "{{child2}}",
+    "{{partner}}",
+    "active",
+    "{{partner}}",
+    1,
+    1
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, locked_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT20:00:00Z','now','-67 days'), strftime('%Y-%m-%dT20:00:00Z','now','-67 days'))",
+   "params": [
+    "perf-fc-22",
+    "{{child2}}",
+    "{{partner}}",
+    1,
+    1,
+    "locked"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:10:00Z','now','-69 days'), ?, ?)",
+   "params": [
+    "perf-fs-085",
+    "perf-fc-22",
+    1,
+    "acknowledge",
+    "Read and acknowledge",
+    "I understand that this is a privilege and it can be paused if the rules are not followed.",
+    "{{child2}}",
+    "{{child2}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:15:00Z','now','-69 days'), ?, ?)",
+   "params": [
+    "perf-fs-086",
+    "perf-fc-22",
+    2,
+    "cost",
+    "Review the costs",
+    "Upfront: about $120\nEvery month: about $25\nIf something breaks: we split the repair",
+    "{{child2}}",
+    "{{child2}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, response, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:20:00Z','now','-69 days'), ?, ?, ?)",
+   "params": [
+    "perf-fs-087",
+    "perf-fc-22",
+    3,
+    "commit",
+    "Make your commitment",
+    "Write in your own words what you will do every day.",
+    "{{child2}}",
+    "I will save half and only spend my own money.",
+    "{{child2}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:52:00Z','now','-70 days'), ?, ?)",
+   "params": [
+    "perf-fa-042",
+    "perf-fc-22",
+    "{{partner}}",
+    "activated",
+    "Perf Partner sent the contract to Perf Kid Two",
+    "{{child2}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:53:00Z','now','-67 days'), ?, ?)",
+   "params": [
+    "perf-fa-043",
+    "perf-fc-22",
+    "{{partner}}",
+    "completed",
+    "Perf Partner countersigned — contract is complete",
+    "{{child2}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT17:00:00Z','now','-3 days'), strftime('%Y-%m-%dT20:00:00Z','now','-2 days'), ?, ?)",
+   "params": [
+    "perf-fc-23",
+    "Babysitting your sibling",
+    "What you are in charge of and what you are not.",
+    "{{child}}",
+    "{{partner}}",
+    "draft",
+    0,
+    0
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-088",
+    "perf-fc-23",
+    1,
+    "cost",
+    "Review the costs",
+    "Upfront: about $120\nEvery month: about $25\nIf something breaks: we split the repair",
+    "{{child}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-089",
+    "perf-fc-23",
+    2,
+    "commit",
+    "Make your commitment",
+    "Write in your own words what you will do every day.",
+    "{{child}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-090",
+    "perf-fc-23",
+    3,
+    "other",
+    "Talk it through together",
+    "Sit down with a parent and go over the tricky situations.",
+    "{{child}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+   "params": [
+    "perf-fs-091",
+    "perf-fc-23",
+    4,
+    "video",
+    "Watch this first",
+    "https://www.youtube.com/watch?v=perfseed01",
+    "{{child}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__activity (id, contract_id, actor_id, action, detail, created_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:54:00Z','now','-3 days'), ?, ?)",
+   "params": [
+    "perf-fa-044",
+    "perf-fc-23",
+    "{{partner}}",
+    "created",
+    "Perf Partner created a draft contract: \"Babysitting your sibling\"",
+    "{{child}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, child_signed_at, parent_signed_by, parent_signed_at, created_at, updated_at, child_agreed, parent_agreed) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT19:00:00Z','now','-98 days'), ?, strftime('%Y-%m-%dT20:00:00Z','now','-97 days'), strftime('%Y-%m-%dT17:00:00Z','now','-101 days'), strftime('%Y-%m-%dT20:00:00Z','now','-97 days'), ?, ?)",
+   "params": [
+    "perf-fc-24",
+    "Fish tank",
+    "Feeding, water changes and holidays.",
+    "{{child2}}",
+    "{{partner}}",
+    "active",
+    "{{partner}}",
+    1,
+    1
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, locked_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT20:00:00Z','now','-97 days'), strftime('%Y-%m-%dT20:00:00Z','now','-97 days'))",
+   "params": [
+    "perf-fc-24",
+    "{{child2}}",
+    "{{partner}}",
+    1,
+    1,
+    "locked"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, response, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:10:00Z','now','-99 days'), ?, ?, ?)",
+   "params": [
+    "perf-fs-092",
+    "perf-fc-24",
+    1,
+    "commit",
+    "Make your commitment",
+    "Write in your own words what you will do every day.",
+    "{{child2}}",
+    "I will do it every morning before school without being asked.",
+    "{{child2}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:15:00Z','now','-99 days'), ?, ?)",
+   "params": [
+    "perf-fs-093",
+    "perf-fc-24",
+    2,
+    "other",
+    "Talk it through together",
+    "Sit down with a parent and go over the tricky situations.",
+    "{{child2}}",
+    "{{child2}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:20:00Z','now','-99 days'), ?, ?)",
+   "params": [
+    "perf-fs-094",
+    "perf-fc-24",
+    3,
+    "video",
+    "Watch this first",
+    "https://www.youtube.com/watch?v=perfseed01",
+    "{{child2}}",
+    "{{child2}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:25:00Z','now','-99 days'), ?, ?)",
+   "params": [
+    "perf-fs-095",
+    "perf-fc-24",
+    4,
+    "acknowledge",
+    "Read and acknowledge",
+    "I understand that this is a privilege and it can be paused if the rules are not followed.",
+    "{{child2}}",
+    "{{child2}}",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, completed_by, completed_at, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT18:30:00Z','now','-99 days'), ?, ?)",
+   "params": [
+    "perf-fs-096",
+    "perf-fc-24",
+    5,
+    "cost",
+    "Review the costs",
+    "Upfront: about $120\nEvery month: about $25\nIf something breaks: we split the repair",
+    "{{child2}}",
+    "{{child2}}",
+    "{{partner}}"
+   ]
+  }
+ ]
+}
