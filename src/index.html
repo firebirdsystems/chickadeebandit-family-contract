@@ -364,6 +364,8 @@
     .empty { text-align: center; padding: 36px 16px; color: var(--muted); font-size: 0.9rem; }
     .empty p { margin: 12px 0 0; }
     .loading { text-align: center; padding: 40px; color: var(--muted); }
+    .load-error { margin: 0 0 12px; padding: 10px 14px; border-radius: 10px; background: var(--hub-tint-danger, #fee2e2); color: var(--hub-tint-danger-fg, #b91c1c); font-size: 0.9rem; display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+    .load-error-retry { background: none; border: 1px solid currentColor; border-radius: 8px; padding: 5px 10px; font: inherit; font-weight: 600; color: inherit; cursor: pointer; flex-shrink: 0; }
     .search-row { margin-bottom: 12px; }
     .search-input {
       width: 100%; border: 1.5px solid var(--border-mid, var(--border, #d1d5db));
@@ -380,7 +382,7 @@
 </div>
 
 <script type="module">
-import { memberColor, initial, esc, isAdult, hubConfirm, searchMatch, glyph, chickadee } from "/hub-sdk.js";
+import { memberColor, initial, esc, isAdult, hubConfirm, hubAlert, searchMatch, glyph, chickadee } from "/hub-sdk.js";
 import { STEP_TYPES, STATUS_INFO, stepsComplete, nextIncompleteStep, formatDate, searchableFields } from "./logic.js";
 
 const CONTEXT = window.__CONTEXT_URL ?? "";
@@ -403,7 +405,9 @@ async function db(sql, params = []) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ sql, params }),
   });
-  return res.json();
+  const json = await res.json().catch(() => null);
+  if (!res.ok || !json || typeof json !== "object" || json.error) throw new Error(json?.error || "Couldn’t reach the hub. Try again.");
+  return json;
 }
 
 async function agree(table, id, agreed) {
@@ -414,7 +418,18 @@ async function agree(table, id, agreed) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ table, id, agreed }),
   });
-  return res.json();
+  const json = await res.json().catch(() => null);
+  if (!res.ok || !json || typeof json !== "object" || json.error) throw new Error(json?.error || "Couldn’t reach the hub. Try again.");
+  return json;
+}
+
+// A write the hub refused, or narrowed to nothing: say so, and show the
+// contracts as they are stored rather than as the click assumed.
+async function writeFailed(e) {
+  closeModal();
+  await loadContracts().catch(() => {});
+  render();
+  hubAlert(e?.message || "Couldn’t reach the hub. Try again.");
 }
 
 // ─── Load ─────────────────────────────────────────────────────────────────────
@@ -429,11 +444,15 @@ async function loadMembers() {
     memberMap = new Map(members.map(m => [m.id, m]));
     return;
   }
-  try {
-    const res = await fetch(`${CONTEXT}?keys=family.members`);
-    members = ((await res.json())["family.members"]) ?? [];
-    memberMap = new Map(members.map(m => [m.id, m]));
-  } catch { members = []; }
+  // Throws when the members cannot be read, so firstLoad shows the banner
+  // rather than contracts between people it cannot name.
+  const res = await fetch(`${CONTEXT}?keys=family.members`);
+  const json = await res.json().catch(() => null);
+  if (!res.ok || !json || typeof json !== "object" || json.error) throw new Error("Couldn’t reach the hub. Try again.");
+  // A 200 can still name a key the hub failed to read: that is a failed read too.
+  if (Array.isArray(json.$errors) && json.$errors.includes("family.members")) throw new Error("Couldn’t reach the hub. Try again.");
+  members = json["family.members"] ?? [];
+  memberMap = new Map(members.map(m => [m.id, m]));
 }
 
 async function loadContracts() {
@@ -498,10 +517,12 @@ async function logActivity(contractId, action, detail = "") {
   // child_id/created_by let the row be party_scoped to the contract's two parties.
   // actor_id is forced to the verified caller server-side (party_scoped self_column).
   const c = contracts.find(x => x.id === contractId);
-  await db(
-    `INSERT INTO app_family_contract__activity (id, contract_id, actor_id, child_id, created_by, action, detail, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [crypto.randomUUID(), contractId, ME?.id ?? "system", c?.child_id ?? "", c?.created_by ?? "", action, detail, new Date().toISOString()]
-  );
+  try {
+    await db(
+      `INSERT INTO app_family_contract__activity (id, contract_id, actor_id, child_id, created_by, action, detail, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [crypto.randomUUID(), contractId, ME?.id ?? "system", c?.child_id ?? "", c?.created_by ?? "", action, detail, new Date().toISOString()]
+    );
+  } catch { /* the log is a record of the change, never a reason to fail it */ }
 }
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
@@ -566,16 +587,21 @@ window.submitNewContract = async function() {
   const newContract = { id, title, description: desc, child_id: childId, created_by: ME.id, status: "draft", created_at: now, updated_at: now };
 
   // Await the INSERT so steps can reference this contract_id via FK
-  await db(
-    `INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, 'draft', ?, ?)`,
-    [id, title, desc, childId, ME.id, now, now]
-  );
+  try {
+    await db(
+      `INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, 'draft', ?, ?)`,
+      [id, title, desc, childId, ME.id, now, now]
+    );
+  } catch (e) {
+    hubAlert(e.message);
+    return;
+  }
   contracts.unshift(newContract);
   closeModal();
   render();
   logActivity(id, "created", `${ME.name} created a draft contract: "${title}"`);
-  openContractDetail(newContract);
+  openContractDetail(newContract).catch(e => hubAlert(e.message));
 };
 
 // ─── Contract detail modal ────────────────────────────────────────────────────
@@ -684,15 +710,31 @@ window.addStep = function(contractId, currentCount) {
   // child_id/created_by scope the step to the contract's two parties (party_scoped).
   // created_by is forced to the verified caller (the creating parent) server-side.
   db(`INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [id, contractId, currentCount, type, title, body, contract?.child_id ?? "", contract?.created_by ?? ME.id]);
+    [id, contractId, currentCount, type, title, body, contract?.child_id ?? "", contract?.created_by ?? ME.id])
+    .catch(e => stepWriteFailed(contractId, e));
 };
+
+// A step write that did not land: the editor or walkthrough is redrawn from
+// the stored steps, with the reason.
+async function stepWriteFailed(contractId, e) {
+  const contract = contracts.find(c => c.id === contractId);
+  const stored = await loadSteps(contractId).catch(() => null);
+  if (contract && stored && modalEl) {
+    if (contract.status === "draft") openDraftEditor(contract, stored);
+    else openChildWalkthrough(contract, stored);
+  }
+  hubAlert(e?.message || "Couldn’t reach the hub. Try again.");
+}
 
 window.removeStep = async function(contractId, stepId) {
   if (!await hubConfirm({ message: "Remove this step?", confirmLabel: "Remove", destructive: true })) return;
   currentContractSteps = currentContractSteps.filter(s => s.id !== stepId);
   const contract = contracts.find(c => c.id === contractId);
   if (contract) openDraftEditor(contract, currentContractSteps);
-  db(`DELETE FROM app_family_contract__contract_steps WHERE id = ? AND contract_id = ?`, [stepId, contractId]);
+  try {
+    const { changed } = await db(`DELETE FROM app_family_contract__contract_steps WHERE id = ? AND contract_id = ?`, [stepId, contractId]);
+    if (changed === 0) throw new Error("This step could not be removed.");
+  } catch (e) { await stepWriteFailed(contractId, e); }
 };
 
 window.activateContract = async function(contractId) {
@@ -706,7 +748,10 @@ window.activateContract = async function(contractId) {
   if (idx >= 0) contracts[idx] = { ...contracts[idx], status: "active", updated_at: now };
   closeModal();
   render();
-  db(`UPDATE app_family_contract__contracts SET status = 'active', updated_at = ? WHERE id = ?`, [now, contractId]);
+  try {
+    const { changed } = await db(`UPDATE app_family_contract__contracts SET status = 'active', updated_at = ? WHERE id = ?`, [now, contractId]);
+    if (changed === 0) throw new Error("This contract could not be sent.");
+  } catch (e) { return writeFailed(e); }
   logActivity(contractId, "activated", `${ME.name} sent the contract to ${child?.name}`);
   notify(`New contract from ${ME.name}`, `"${contract.title}" — open Family Contract to review`);
 };
@@ -718,7 +763,10 @@ window.voidContract = async function(contractId) {
   if (idx >= 0) contracts[idx] = { ...contracts[idx], status: "voided", updated_at: now };
   closeModal();
   render();
-  db(`UPDATE app_family_contract__contracts SET status = 'voided', updated_at = ? WHERE id = ?`, [now, contractId]);
+  try {
+    const { changed } = await db(`UPDATE app_family_contract__contracts SET status = 'voided', updated_at = ? WHERE id = ?`, [now, contractId]);
+    if (changed === 0) throw new Error("This contract could not be voided.");
+  } catch (e) { return writeFailed(e); }
   logActivity(contractId, "voided", `${ME.name} voided the contract`);
 };
 
@@ -807,7 +855,7 @@ window.onCommitInput = function() {
   if (btn) btn.disabled = !val;
 };
 
-window.completeStep = function(contractId, stepId) {
+window.completeStep = async function(contractId, stepId) {
   if (!stepId) return;
   const response = document.getElementById("wt-response")?.value.trim() ?? "";
   const now = new Date().toISOString();
@@ -816,8 +864,11 @@ window.completeStep = function(contractId, stepId) {
   );
   const contract = contracts.find(c => c.id === contractId);
   if (contract) openChildWalkthrough(contract, currentContractSteps);
-  db(`UPDATE app_family_contract__contract_steps SET completed_by = ?, completed_at = ?, response = ? WHERE id = ? AND contract_id = ?`,
-    [ME.id, now, response, stepId, contractId]);
+  try {
+    const { changed } = await db(`UPDATE app_family_contract__contract_steps SET completed_by = ?, completed_at = ?, response = ? WHERE id = ? AND contract_id = ?`,
+      [ME.id, now, response, stepId, contractId]);
+    if (changed === 0) throw new Error("This step could not be saved.");
+  } catch (e) { await stepWriteFailed(contractId, e); }
 };
 
 window.childSign = async function(contractId) {
@@ -831,8 +882,9 @@ window.childSign = async function(contractId) {
   // The child's agreement is recorded ONLY through the endpoint_only agreement table
   // (api/agree maps the caller to child_agreed); child_signed_at is just a display
   // timestamp on the party-writable contracts row.
-  await agree("contract_agreements", contractId, true);
-  db(`UPDATE app_family_contract__contracts SET child_signed_at = ?, updated_at = ? WHERE id = ?`, [now, now, contractId]);
+  try { await agree("contract_agreements", contractId, true); }
+  catch (e) { return writeFailed(e); }
+  db(`UPDATE app_family_contract__contracts SET child_signed_at = ?, updated_at = ? WHERE id = ?`, [now, now, contractId]).catch(() => {});
   logActivity(contractId, "child_signed", `${ME.name} signed the contract`);
   notify(`${ME.name} signed the contract`, `"${contract?.title}" is ready for your countersignature`);
 };
@@ -922,9 +974,10 @@ window.parentCountersign = async function(contractId) {
   // The countersignature (and the lock that derives 'completed') happens server-side
   // in api/agree once both flags are set — we do NOT write status='completed' to the
   // party-writable contracts row. parent_signed_by/at are display-only.
-  await agree("contract_agreements", contractId, true);
+  try { await agree("contract_agreements", contractId, true); }
+  catch (e) { return writeFailed(e); }
   db(`UPDATE app_family_contract__contracts SET parent_signed_by = ?, parent_signed_at = ?, updated_at = ? WHERE id = ?`,
-    [ME.id, now, now, contractId]);
+    [ME.id, now, now, contractId]).catch(() => {});
   logActivity(contractId, "completed", `${ME.name} countersigned — contract is complete`);
   notify(`Contract complete!`, `"${contract?.title}" has been signed by both parties`);
 };
@@ -932,7 +985,7 @@ window.parentCountersign = async function(contractId) {
 // ─── Render ───────────────────────────────────────────────────────────────────
 window.openContractDetail_ = async function(id) {
   const contract = contracts.find(c => c.id === id);
-  if (contract) await openContractDetail(contract);
+  if (contract) await openContractDetail(contract).catch(e => hubAlert(e.message));
 };
 
 function renderCard(contract) {
@@ -1049,15 +1102,24 @@ function handleDeepLink() {
   const contractId = new URLSearchParams(window.location.search).get("contractId");
   if (!contractId) return;
   const contract = contracts.find(c => c.id === contractId);
-  if (contract) openContractDetail(contract);
+  if (contract) openContractDetail(contract).catch(e => hubAlert(e.message));
 }
 
 // ─── Init ──────────────────────────────────────────────────────────────────────
-(async () => {
-  await Promise.all([loadMembers(), loadContracts()]);
+async function firstLoad() {
+  try {
+    await Promise.all([loadMembers(), loadContracts()]);
+  } catch {
+    // Nothing was read, so an empty list would be a false answer: say so instead.
+    document.getElementById("root").innerHTML =
+      `<div class="load-error" data-testid="load-error" role="alert" style="margin:12px"><span>Couldn’t load the contracts.</span> <button type="button" class="load-error-retry" data-testid="load-retry" onclick="retryLoad()">Try again</button></div>`;
+    return;
+  }
   render();
   handleDeepLink();
-})();
+}
+window.retryLoad = firstLoad;
+firstLoad();
 </script>
 </body>
 </html>
