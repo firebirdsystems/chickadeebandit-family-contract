@@ -95,6 +95,287 @@
           "selector": "[data-testid=\"void-btn\"][data-contract-id=\"fc-1\"]"
         }
       ]
+    },
+    {
+      "name": "a step can be added or removed while a contract is a draft, and a draft editor left open can do neither once the contract has been sent and signed",
+      "expectsRefusedWrite": true,
+      "members": {
+        "parent": "adult",
+        "kid": "child"
+      },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_family_contract__contracts (id, title, child_id, created_by, status, created_at, updated_at) VALUES ('fc-da', ?, ?, ?, 'draft', '2026-08-01T09:00:00Z', '2026-08-01T09:00:00Z')",
+          "params": [
+            "Screen time agreement",
+            "{{kid}}",
+            "{{parent}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, child_id, created_by) VALUES ('fc-da-s1', 'fc-da', 0, 'rule', ?, ?, ?)",
+          "params": [
+            "No screens at the table",
+            "{{kid}}",
+            "{{parent}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_family_contract__contracts (id, title, child_id, created_by, status, created_at, updated_at) VALUES ('fc-db', ?, ?, ?, 'draft', '2026-08-01T09:00:00Z', '2026-08-01T09:00:00Z')",
+          "params": [
+            "Bike rules",
+            "{{kid}}",
+            "{{parent}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, child_id, created_by) VALUES ('fc-db-s1', 'fc-db', 0, 'rule', ?, ?, ?)",
+          "params": [
+            "Helmet every ride",
+            "{{kid}}",
+            "{{parent}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, child_id, created_by) VALUES ('fc-db-s2', 'fc-db', 1, 'rule', ?, ?, ?)",
+          "params": [
+            "Lights on after dark",
+            "{{kid}}",
+            "{{parent}}"
+          ]
+        },
+        {
+          "action": "open",
+          "as": "parent"
+        },
+        {
+          "action": "click",
+          "as": "parent",
+          "selector": "[data-testid=\"contract-card\"][data-contract-id=\"fc-da\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "parent",
+          "selector": "[data-testid=\"draft-editor\"][data-contract-id=\"fc-da\"]"
+        },
+        {
+          "action": "expectCount",
+          "as": "parent",
+          "selector": "[data-testid=\"draft-step\"]",
+          "count": 1
+        },
+        {
+          "action": "fill",
+          "as": "parent",
+          "selector": "#ns-title",
+          "value": "Phones off at nine"
+        },
+        {
+          "action": "click",
+          "as": "parent",
+          "selector": "[data-testid=\"add-step\"]"
+        },
+        {
+          "action": "waitFor",
+          "as": "parent",
+          "selector": "#draft-steps-list[data-saving]",
+          "state": "detached"
+        },
+        {
+          "action": "expectCount",
+          "as": "parent",
+          "selector": "[data-testid=\"draft-step\"]",
+          "count": 2
+        },
+        {
+          "action": "seedRaw",
+          "sql": "UPDATE app_family_contract__contracts SET status = 'active', child_signed_at = '2026-08-02T09:00:00Z', updated_at = '2026-08-02T09:00:00Z' WHERE id = 'fc-da'"
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, updated_at) VALUES ('fc-da', ?, ?, 1, 0, 'pending', '2026-08-02T09:00:00Z')",
+          "params": [
+            "{{kid}}",
+            "{{parent}}"
+          ]
+        },
+        {
+          "action": "fill",
+          "as": "parent",
+          "selector": "#ns-title",
+          "value": "Two hours on weekends"
+        },
+        {
+          "action": "click",
+          "as": "parent",
+          "selector": "[data-testid=\"add-step\"]"
+        },
+        {
+          "action": "dialog",
+          "as": "parent",
+          "answer": "accept",
+          "text": "This contract has already been sent and can’t be changed."
+        },
+        {
+          "action": "expectHidden",
+          "as": "parent",
+          "selector": "[data-testid=\"modal\"]"
+        },
+        {
+          "action": "click",
+          "as": "parent",
+          "selector": "[data-testid=\"contract-card\"][data-contract-id=\"fc-db\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "parent",
+          "selector": "[data-testid=\"draft-editor\"][data-contract-id=\"fc-db\"]"
+        },
+        {
+          "action": "expectCount",
+          "as": "parent",
+          "selector": "[data-testid=\"draft-step\"]",
+          "count": 2
+        },
+        {
+          "action": "click",
+          "as": "parent",
+          "selector": "#dsi-fc-db-s2 [data-testid=\"remove-step\"]"
+        },
+        {
+          "action": "dialog",
+          "as": "parent",
+          "answer": "accept",
+          "text": "Remove this step?"
+        },
+        {
+          "action": "waitFor",
+          "as": "parent",
+          "selector": "#draft-steps-list[data-saving]",
+          "state": "detached"
+        },
+        {
+          "action": "expectCount",
+          "as": "parent",
+          "selector": "[data-testid=\"draft-step\"]",
+          "count": 1
+        },
+        {
+          "action": "seedRaw",
+          "sql": "UPDATE app_family_contract__contracts SET status = 'active', child_signed_at = '2026-08-02T09:00:00Z', updated_at = '2026-08-02T09:00:00Z' WHERE id = 'fc-db'"
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, updated_at) VALUES ('fc-db', ?, ?, 1, 0, 'pending', '2026-08-02T09:00:00Z')",
+          "params": [
+            "{{kid}}",
+            "{{parent}}"
+          ]
+        },
+        {
+          "action": "click",
+          "as": "parent",
+          "selector": "#dsi-fc-db-s1 [data-testid=\"remove-step\"]"
+        },
+        {
+          "action": "dialog",
+          "as": "parent",
+          "answer": "accept",
+          "text": "Remove this step?"
+        },
+        {
+          "action": "dialog",
+          "as": "parent",
+          "answer": "accept",
+          "text": "This contract has already been sent and can’t be changed."
+        },
+        {
+          "action": "expectHidden",
+          "as": "parent",
+          "selector": "[data-testid=\"modal\"]"
+        },
+        {
+          "action": "reload",
+          "as": "parent"
+        },
+        {
+          "action": "click",
+          "as": "parent",
+          "selector": "[data-testid=\"contract-card\"][data-contract-id=\"fc-da\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "parent",
+          "selector": "[data-testid=\"contract-view\"][data-contract-id=\"fc-da\"]"
+        },
+        {
+          "action": "expectCount",
+          "as": "parent",
+          "selector": "[data-testid=\"draft-editor\"][data-contract-id=\"fc-da\"]",
+          "count": 0
+        },
+        {
+          "action": "expectText",
+          "as": "parent",
+          "selector": "[data-testid=\"modal\"]",
+          "text": "No screens at the table"
+        },
+        {
+          "action": "expectText",
+          "as": "parent",
+          "selector": "[data-testid=\"modal\"]",
+          "text": "Phones off at nine"
+        },
+        {
+          "action": "expectNoText",
+          "as": "parent",
+          "selector": "[data-testid=\"modal\"]",
+          "text": "Two hours on weekends"
+        },
+        {
+          "action": "expectCount",
+          "as": "parent",
+          "selector": "[data-testid=\"modal\"] .step-item",
+          "count": 2
+        },
+        {
+          "action": "reload",
+          "as": "parent"
+        },
+        {
+          "action": "click",
+          "as": "parent",
+          "selector": "[data-testid=\"contract-card\"][data-contract-id=\"fc-db\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "parent",
+          "selector": "[data-testid=\"contract-view\"][data-contract-id=\"fc-db\"]"
+        },
+        {
+          "action": "expectText",
+          "as": "parent",
+          "selector": "[data-testid=\"modal\"]",
+          "text": "Helmet every ride"
+        },
+        {
+          "action": "expectNoText",
+          "as": "parent",
+          "selector": "[data-testid=\"modal\"]",
+          "text": "Lights on after dark"
+        },
+        {
+          "action": "expectCount",
+          "as": "parent",
+          "selector": "[data-testid=\"modal\"] .step-item",
+          "count": 1
+        }
+      ]
     }
   ]
 }

@@ -77,6 +77,70 @@
           "expect": { "status": 403, "errorIncludes": "endpoint" }
         }
       ]
+    },
+    {
+      "name": "the draft-only guard the step editor writes behind matches a draft contract and nothing once it has been sent",
+      "members": {
+        "parent": "adult",
+        "kid": "child"
+      },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_family_contract__contracts (id, title, child_id, created_by, status, created_at, updated_at) VALUES ('fd1', 'Draft', ?, ?, 'draft', '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
+          "params": [
+            "{{kid}}",
+            "{{parent}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_family_contract__contracts (id, title, child_id, created_by, status, created_at, updated_at) VALUES ('fs1', 'Sent', ?, ?, 'active', '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
+          "params": [
+            "{{kid}}",
+            "{{parent}}"
+          ]
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "UPDATE app_family_contract__contracts SET updated_at = ? WHERE id = ? AND status = 'draft' RETURNING id",
+          "params": [
+            "2026-01-02T00:00:00Z",
+            "fd1"
+          ],
+          "expect": {
+            "status": 200,
+            "rowCount": 1
+          }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "UPDATE app_family_contract__contracts SET updated_at = ? WHERE id = ? AND status = 'draft' RETURNING id",
+          "params": [
+            "2026-01-02T00:00:00Z",
+            "fs1"
+          ],
+          "expect": {
+            "status": 200,
+            "rowCount": 0
+          }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "UPDATE app_family_contract__contracts SET status = 'active', updated_at = ? WHERE id = ? AND status = 'draft' RETURNING id",
+          "params": [
+            "2026-01-02T00:00:00Z",
+            "fs1"
+          ],
+          "expect": {
+            "status": 200,
+            "rowCount": 0
+          }
+        }
+      ]
     }
   ]
 }

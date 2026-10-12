@@ -410,6 +410,24 @@ async function db(sql, params = []) {
   return json;
 }
 
+// Several statements in ONE transaction. A statement marked `requireChanges`
+// that changes nothing rolls the whole batch back, and the hub answers 409.
+async function dbBatch(statements) {
+  if (!DB) return { results: [] };
+  const res = await fetch(DB, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ statements }),
+  });
+  const json = await res.json().catch(() => null);
+  if (!res.ok || !json || typeof json !== "object" || json.error) {
+    const err = new Error(json?.error || "Couldn’t reach the hub. Try again.");
+    err.status = res.status;
+    throw err;
+  }
+  return json;
+}
+
 async function agree(table, id, agreed) {
   if (!DB) return { success: false };
   const endpoint = DB.replace("/api/db", "/api/agree");
@@ -628,21 +646,21 @@ function openDraftEditor(contract, steps) {
   const stepsHtml = steps.length === 0
     ? `<p style="color:var(--muted);font-size:.85rem;margin-bottom:8px">No steps yet. Add at least one below.</p>`
     : steps.map((s, i) => `
-      <div class="draft-step-item" id="dsi-${esc(s.id)}">
+      <div class="draft-step-item" id="dsi-${esc(s.id)}" data-testid="draft-step">
         <span class="step-icon">${stepIcon(s.type)}</span>
         <div class="step-body">
           <div class="step-type-label">${esc(stepTypeLabel(s.type))}</div>
           <div class="step-title">${esc(s.title)}</div>
           ${s.body ? `<div class="step-content" style="margin-top:3px">${esc(s.body)}</div>` : ""}
         </div>
-        <button class="draft-step-remove" onclick="removeStep('${esc(contract.id)}','${esc(s.id)}')" title="Remove" aria-label="Remove step">${glyph("close")}</button>
+        <button class="draft-step-remove" data-testid="remove-step" onclick="removeStep('${esc(contract.id)}','${esc(s.id)}')" title="Remove" aria-label="Remove step">${glyph("close")}</button>
       </div>
     `).join("");
 
   const canActivate = steps.length > 0;
 
   openModal(`
-    <h3>${glyph("seal-document")} ${esc(contract.title)}</h3>
+    <h3 data-testid="draft-editor" data-contract-id="${esc(contract.id)}">${glyph("seal-document")} ${esc(contract.title)}</h3>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
       ${statusHtml(contract.status)}
       <span style="font-size:.82rem;color:var(--muted)">For ${esc(child?.name ?? "?")}</span>
@@ -668,7 +686,7 @@ function openDraftEditor(contract, steps) {
         <textarea id="ns-body" rows="3" placeholder=""></textarea>
       </div>
       <div style="display:flex;justify-content:flex-end;margin-top:10px">
-        <button class="btn btn-primary btn-sm" onclick="addStep('${esc(contract.id)}', ${steps.length})">+ Add Step</button>
+        <button class="btn btn-primary btn-sm" data-testid="add-step" onclick="addStep('${esc(contract.id)}', ${steps.length})">+ Add Step</button>
       </div>
     </div>
 
@@ -697,6 +715,26 @@ window.updateStepBuilder = function() {
   if (bodyEl)  bodyEl.placeholder  = info.bodyPlaceholder;
 };
 
+// Steps are the contract's terms, and they change only while it is a draft.
+// The page checks the status it has; this statement, first in the same
+// transaction as the step write, makes the hub check the status it has
+// stored — a draft editor left open elsewhere still shows a contract that
+// has since been sent as a draft.
+const CONTRACT_SENT = "This contract has already been sent and can’t be changed.";
+function whileDraft(contractId) {
+  return {
+    sql: `UPDATE app_family_contract__contracts SET updated_at = ? WHERE id = ? AND status = 'draft'`,
+    params: [new Date().toISOString(), contractId],
+    requireChanges: true,
+  };
+}
+// The reason, and the contracts as they are stored: the stale editor closes
+// and the card shows the contract as sent.
+function contractSent() { return writeFailed(new Error(CONTRACT_SENT)); }
+// The editor draws a step change ahead of the hub's answer; the list carries
+// `data-saving` until the answer is in.
+function markSaving(on) { document.getElementById("draft-steps-list")?.toggleAttribute("data-saving", on); }
+
 window.addStep = function(contractId, currentCount) {
   const type  = document.getElementById("ns-type").value;
   const title = document.getElementById("ns-title").value.trim();
@@ -705,13 +743,17 @@ window.addStep = function(contractId, currentCount) {
 
   const id = crypto.randomUUID();
   const contract = contracts.find(c => c.id === contractId);
+  if (contract && contract.status !== "draft") return contractSent();
   currentContractSteps = [...currentContractSteps, { id, contract_id: contractId, position: currentCount, type, title, body, completed_at: null, completed_by: null, response: null }];
   if (contract) openDraftEditor(contract, currentContractSteps);
+  markSaving(true);
   // child_id/created_by scope the step to the contract's two parties (party_scoped).
   // created_by is forced to the verified caller (the creating parent) server-side.
-  db(`INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [id, contractId, currentCount, type, title, body, contract?.child_id ?? "", contract?.created_by ?? ME.id])
-    .catch(e => stepWriteFailed(contractId, e));
+  dbBatch([
+    whileDraft(contractId),
+    { sql: `INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      params: [id, contractId, currentCount, type, title, body, contract?.child_id ?? "", contract?.created_by ?? ME.id] },
+  ]).then(() => markSaving(false), e => e.status === 409 ? contractSent() : stepWriteFailed(contractId, e));
 };
 
 // A step write that did not land: the editor or walkthrough is redrawn from
@@ -728,13 +770,22 @@ async function stepWriteFailed(contractId, e) {
 
 window.removeStep = async function(contractId, stepId) {
   if (!await hubConfirm({ message: "Remove this step?", confirmLabel: "Remove", destructive: true })) return;
-  currentContractSteps = currentContractSteps.filter(s => s.id !== stepId);
   const contract = contracts.find(c => c.id === contractId);
+  if (contract && contract.status !== "draft") return contractSent();
+  currentContractSteps = currentContractSteps.filter(s => s.id !== stepId);
   if (contract) openDraftEditor(contract, currentContractSteps);
+  markSaving(true);
   try {
-    const { changed } = await db(`DELETE FROM app_family_contract__contract_steps WHERE id = ? AND contract_id = ?`, [stepId, contractId]);
-    if (changed === 0) throw new Error("This step could not be removed.");
-  } catch (e) { await stepWriteFailed(contractId, e); }
+    const { results } = await dbBatch([
+      whileDraft(contractId),
+      { sql: `DELETE FROM app_family_contract__contract_steps WHERE id = ? AND contract_id = ?`, params: [stepId, contractId] },
+    ]);
+    if (results?.[1]?.changed === 0) throw new Error("This step could not be removed.");
+    markSaving(false);
+  } catch (e) {
+    if (e.status === 409) return contractSent();
+    await stepWriteFailed(contractId, e);
+  }
 };
 
 window.activateContract = async function(contractId) {
@@ -749,7 +800,7 @@ window.activateContract = async function(contractId) {
   closeModal();
   render();
   try {
-    const { changed } = await db(`UPDATE app_family_contract__contracts SET status = 'active', updated_at = ? WHERE id = ?`, [now, contractId]);
+    const { changed } = await db(`UPDATE app_family_contract__contracts SET status = 'active', updated_at = ? WHERE id = ? AND status = 'draft'`, [now, contractId]);
     if (changed === 0) throw new Error("This contract could not be sent.");
   } catch (e) { return writeFailed(e); }
   logActivity(contractId, "activated", `${ME.name} sent the contract to ${child?.name}`);
