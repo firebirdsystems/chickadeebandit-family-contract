@@ -25,10 +25,11 @@
     "requires_approval": false
   },
   "storage": "db",
+  "db_plaintext_columns": ["terms_hash"],
   "glance": {
     "source": {
       "kind": "sql",
-      "query": "SELECT COUNT(*) AS n FROM app_family_contract__contract_agreements WHERE status = 'pending' AND ((child_id = :me AND child_agreed = 0) OR (created_by = :me AND parent_agreed = 0)) LIMIT 1"
+      "query": "SELECT COUNT(*) AS n FROM app_family_contract__contract_agreements a JOIN app_family_contract__contracts c ON c.id = a.id WHERE a.status = 'pending' AND c.status = 'active' AND ((a.child_id = :me AND a.child_agreed = 0) OR (a.created_by = :me AND a.parent_agreed = 0)) LIMIT 1"
     },
     "display": {
       "template": "badge",
@@ -41,12 +42,37 @@
     "contracts": {
       "kind": "party_scoped",
       "member_columns": ["child_id", "created_by"],
-      "self_column": "created_by"
+      "self_column": "created_by",
+      "column_write_acls": {
+        "id": { "writable_by": [], "actions": ["update"] },
+        "created_by": { "writable_by": [], "actions": ["update"] },
+        "child_id": { "writable_by": [], "actions": ["update"] },
+        "title": { "writable_by": ["adult_owner"], "owner_column": "created_by" },
+        "description": { "writable_by": ["adult_owner"], "owner_column": "created_by" },
+        "status": { "writable_by": ["adult_owner"], "owner_column": "created_by" },
+        "terms_hash": { "writable_by": ["adult_owner"], "owner_column": "created_by" },
+        "parent_signed_by": { "writable_by": ["adult_owner"], "owner_column": "created_by" },
+        "parent_signed_at": { "writable_by": ["adult_owner"], "owner_column": "created_by" },
+        "child_signed_at": { "writable_by": ["owner"], "owner_column": "child_id" }
+      }
     },
     "contract_steps": {
       "kind": "party_scoped",
       "member_columns": ["child_id", "created_by"],
-      "self_column": "created_by"
+      "self_column": "created_by",
+      "column_write_acls": {
+        "id": { "writable_by": [], "actions": ["update"] },
+        "created_by": { "writable_by": [], "actions": ["update"] },
+        "contract_id": { "writable_by": ["adult_owner"], "owner_column": "created_by" },
+        "child_id": { "writable_by": [], "actions": ["update"] },
+        "position": { "writable_by": ["adult_owner"], "owner_column": "created_by" },
+        "type": { "writable_by": ["adult_owner"], "owner_column": "created_by" },
+        "title": { "writable_by": ["adult_owner"], "owner_column": "created_by" },
+        "body": { "writable_by": ["adult_owner"], "owner_column": "created_by" },
+        "completed_by": { "writable_by": ["owner"], "owner_column": "child_id" },
+        "completed_at": { "writable_by": ["owner"], "owner_column": "child_id" },
+        "response": { "writable_by": ["owner"], "owner_column": "child_id" }
+      }
     },
     "contract_agreements": {
       "kind": "endpoint_only",
@@ -71,7 +97,8 @@
       "locked_at_column": "locked_at",
       "updated_at_column": "updated_at",
       "init_from_table": "contracts",
-      "init_columns": ["child_id", "created_by"]
+      "init_columns": ["child_id", "created_by"],
+      "snapshot_columns": ["terms_hash"]
     }
   },
   "member_references": {
@@ -127,7 +154,7 @@
   "icon": "📋",
   "preload": {
     "contracts": {
-      "sql": "SELECT c.id, c.title, c.description, c.child_id, c.created_by, c.child_signed_at, c.parent_signed_by, c.parent_signed_at, c.created_at, c.updated_at, COALESCE(ca.child_agreed, 0) AS child_agreed, COALESCE(ca.parent_agreed, 0) AS parent_agreed, CASE WHEN c.status IN ('draft', 'voided') THEN c.status WHEN ca.status = 'locked' THEN 'completed' ELSE 'active' END AS status, ca.locked_at FROM app_family_contract__contracts c LEFT JOIN app_family_contract__contract_agreements ca ON ca.id = c.id ORDER BY c.created_at DESC"
+      "sql": "SELECT c.id, c.title, c.description, c.child_id, c.created_by, c.child_signed_at, c.parent_signed_by, c.parent_signed_at, c.created_at, c.updated_at, c.terms_hash, ca.terms_hash AS agreed_hash, COALESCE(ca.child_agreed, 0) AS child_agreed, COALESCE(ca.parent_agreed, 0) AS parent_agreed, CASE WHEN c.status IN ('draft', 'voided') THEN c.status WHEN ca.status = 'locked' THEN 'completed' ELSE 'active' END AS status, ca.locked_at FROM app_family_contract__contracts c LEFT JOIN app_family_contract__contract_agreements ca ON ca.id = c.id ORDER BY c.created_at DESC"
     }
   }
 }

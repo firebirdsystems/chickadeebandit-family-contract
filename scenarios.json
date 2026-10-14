@@ -141,6 +141,30 @@
           }
         }
       ]
+    },
+    {
+      "name": "only the parent who wrote a contract can change its wording, status or fingerprint, and only the child can record a step as done",
+      "members": {"parent": "adult", "child": "child"},
+      "steps": [
+        {"action": "db", "as": "parent", "sql": "INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, created_at, updated_at) VALUES ('c1', 'A dog', 'Before we get one', ?, ?, 'draft', '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')", "params": ["{{child}}", "{{parent}}"], "expect": {"status": 200}},
+        {"action": "db", "as": "parent", "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES ('s1', 'c1', 0, 'commit', 'Walks', 'Every morning', ?, ?)", "params": ["{{child}}", "{{parent}}"], "expect": {"status": 200}},
+        {"action": "batch", "as": "parent", "statements": [{"sql": "UPDATE app_family_contract__contracts SET status = 'active', terms_hash = ?, updated_at = ? WHERE id = ? AND status = 'draft'", "params": ["sent-fingerprint", "2026-01-02T00:00:00Z", "c1"]}], "expect": {"status": 200, "changed": [1]}},
+        {"action": "db", "as": "child", "sql": "UPDATE app_family_contract__contracts SET title = 'A pony' WHERE id = 'c1'", "expect": {"status": 403}},
+        {"action": "db", "as": "child", "sql": "UPDATE app_family_contract__contracts SET terms_hash = 'forged', status = 'draft' WHERE id = 'c1'", "expect": {"status": 403}},
+        {"action": "db", "as": "child", "sql": "UPDATE app_family_contract__contract_steps SET body = 'When I feel like it' WHERE id = 's1'", "expect": {"status": 403}},
+        {"action": "batch", "as": "child", "statements": [{"sql": "UPDATE app_family_contract__contracts SET updated_at = ? WHERE id = ? AND status = 'active'", "params": ["2026-01-03T00:00:00Z", "c1"]}], "expect": {"status": 200, "changed": [1]}},
+        {"action": "batch", "as": "child", "statements": [{"sql": "UPDATE app_family_contract__contract_steps SET completed_by = ?, completed_at = ?, response = ? WHERE id = ? AND contract_id = ?", "params": ["{{child}}", "2026-01-03T00:00:00Z", "I will", "s1", "c1"]}], "expect": {"status": 200, "changed": [1]}},
+        {"action": "batch", "as": "parent", "statements": [{"sql": "UPDATE app_family_contract__contract_steps SET response = 'I will do everything' WHERE id = 's1'"}], "expect": {"status": 200, "changed": [0]}},
+        {"action": "batch", "as": "child", "statements": [{"sql": "UPDATE app_family_contract__contracts SET child_signed_at = ?, updated_at = ? WHERE id = ?", "params": ["2026-01-03T00:00:00Z", "2026-01-03T00:00:00Z", "c1"]}], "expect": {"status": 200, "changed": [1]}},
+{"action": "db", "as": "child", "sql": "UPDATE app_family_contract__contracts SET created_by = ? WHERE id = 'c1'", "params": ["{{child}}"], "expect": {"status": 403}},
+        {"action": "db", "as": "child", "sql": "UPDATE app_family_contract__contract_steps SET created_by = ? WHERE id = 's1'", "params": ["{{child}}"], "expect": {"status": 403}},
+        {"action": "db", "as": "child", "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES ('s2', 'c1', 1, 'other', 'Pocket money', 'Double it', ?, ?)", "params": ["{{child}}", "{{child}}"], "expect": {"status": 403}},
+{"action": "db", "as": "parent", "sql": "UPDATE app_family_contract__contract_steps SET child_id = ? WHERE id = 's1'", "params": ["{{parent}}"], "expect": {"status": 403}},
+        {"action": "db", "as": "parent", "sql": "UPDATE app_family_contract__contracts SET child_id = ? WHERE id = 'c1'", "params": ["{{parent}}"], "expect": {"status": 403}},
+        {"action": "db", "as": "parent", "sql": "SELECT id FROM app_family_contract__contract_steps WHERE contract_id = 'c1'", "expect": {"status": 200, "rowCount": 1}},
+        {"action": "db", "as": "parent", "sql": "SELECT title, status, terms_hash FROM app_family_contract__contracts WHERE id = 'c1'", "expect": {"status": 200, "rowCount": 1, "rowsContain": [{"title": "A dog", "status": "active", "terms_hash": "sent-fingerprint"}]}},
+        {"action": "db", "as": "parent", "sql": "SELECT body, response, completed_by FROM app_family_contract__contract_steps WHERE id = 's1'", "expect": {"status": 200, "rowCount": 1, "rowsContain": [{"body": "Every morning", "response": "I will", "completed_by": "scn-child"}]}}
+      ]
     }
   ]
 }

@@ -383,7 +383,7 @@
 
 <script type="module">
 import { memberColor, initial, esc, isAdult, hubConfirm, hubAlert, searchMatch, glyph, chickadee } from "/hub-sdk.js";
-import { STEP_TYPES, STATUS_INFO, stepsComplete, nextIncompleteStep, formatDate, searchableFields } from "./logic.js";
+import { STEP_TYPES, STATUS_INFO, stepsComplete, nextIncompleteStep, formatDate, searchableFields, contractTerms, termsAsStored, termsHash, termsChanged, shownTerms, TERMS_UNSENT } from "./logic.js";
 
 const CONTEXT = window.__CONTEXT_URL ?? "";
 const DB      = window.__DB_URL      ?? "";
@@ -394,6 +394,7 @@ let members             = [];
 let memberMap           = new Map();
 let contracts           = [];
 let currentContractSteps = []; // steps for the currently-open contract modal
+let currentTermsChanged = false; // the open contract's wording is not the wording on record
 let activeTab           = "active"; // "active" | "all"
 let searchQ = "";       // in-app search (see logic.js searchableFields)
 
@@ -428,13 +429,15 @@ async function dbBatch(statements) {
   return json;
 }
 
-async function agree(table, id, agreed) {
+// `shown` is what this signer's screen showed (see shownTerms): the hub
+// refuses the signature when it is not the wording on record.
+async function agree(table, id, agreed, shown) {
   if (!DB) return { success: false };
   const endpoint = DB.replace("/api/db", "/api/agree");
   const res = await fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ table, id, agreed }),
+    body: JSON.stringify({ table, id, agreed, ...(shown ? { expected_snapshot: shown } : {}) }),
   });
   const json = await res.json().catch(() => null);
   if (!res.ok || !json || typeof json !== "object" || json.error) throw new Error(json?.error || "Couldn’t reach the hub. Try again.");
@@ -484,6 +487,7 @@ async function loadContracts() {
        c.id, c.title, c.description, c.child_id, c.created_by,
        c.child_signed_at, c.parent_signed_by, c.parent_signed_at,
        c.created_at, c.updated_at,
+       c.terms_hash, ca.terms_hash AS agreed_hash,
        COALESCE(ca.child_agreed, 0)  AS child_agreed,
        COALESCE(ca.parent_agreed, 0) AS parent_agreed,
        CASE
@@ -522,11 +526,17 @@ function stepIcon(type) { return glyph(STEP_TYPES[type]?.glyph ?? "checklist"); 
 function stepTypeLabel(type) { return STEP_TYPES[type]?.label ?? type; }
 
 // ─── Notifications ─────────────────────────────────────────────────────────────
-async function notify(title, body) {
+// To the contract's child only. A contract is private to the child and the
+// parent who wrote it, so nothing about one is sent to the household. The
+// child's own signature sends nothing: a child may notify only "adults" as a
+// group, which would tell the other adults too, and the parent already has the
+// "agreements to sign" badge for it.
+async function notifyChild(contract, title, body) {
+  if (!contract?.child_id) return;
   await fetch(window.__NOTIFY_URL ?? "/api/notifications/send", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title, body, url: `/run/${APP_ID}` }),
+    body: JSON.stringify({ title, body, url: `/run/${APP_ID}`, audience: [contract.child_id] }),
   }).catch(() => {});
 }
 
@@ -602,14 +612,14 @@ window.submitNewContract = async function() {
 
   const id  = crypto.randomUUID();
   const now = new Date().toISOString();
-  const newContract = { id, title, description: desc, child_id: childId, created_by: ME.id, status: "draft", created_at: now, updated_at: now };
+  const newContract = { id, title, description: desc, child_id: childId, created_by: ME.id, status: "draft", terms_hash: TERMS_UNSENT, created_at: now, updated_at: now };
 
   // Await the INSERT so steps can reference this contract_id via FK
   try {
     await db(
-      `INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, 'draft', ?, ?)`,
-      [id, title, desc, childId, ME.id, now, now]
+      `INSERT INTO app_family_contract__contracts (id, title, description, child_id, created_by, status, terms_hash, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, 'draft', ?, ?, ?)`,
+      [id, title, desc, childId, ME.id, TERMS_UNSENT, now, now]
     );
   } catch (e) {
     hubAlert(e.message);
@@ -628,11 +638,27 @@ async function openContractDetail(contract) {
 
   if (contract.status === "draft" && isAdult(ME)) {
     openDraftEditor(contract, steps);
-  } else if (!isAdult(ME) && (contract.status === "active")) {
-    openChildWalkthrough(contract, steps);
-  } else {
-    openContractView(contract, steps);
+    return;
   }
+  // A sent contract's wording is on record as a fingerprint. If what is stored
+  // now is not that wording, say so before anyone reads or signs it.
+  // Only a contract that is open or signed: one that was never sent, or was
+  // voided, has no wording anyone is held to.
+  const changed = (contract.status === "active" || contract.status === "completed")
+    && termsChanged(contract, await termsHash(contractTerms(contract, steps)));
+  if (!isAdult(ME) && (contract.status === "active") && !contract.child_agreed) {
+    openChildWalkthrough(contract, steps, changed);
+  } else {
+    openContractView(contract, steps, changed);
+  }
+}
+
+function termsChangedHtml(contract) {
+  const signed = contract.child_agreed || contract.parent_agreed;
+  return `<div data-testid="terms-changed" role="alert" style="margin-bottom:10px;padding:8px 10px;border:1px solid var(--red);border-radius:8px;color:var(--red);font-size:.85rem">${
+    signed ? "This contract’s wording was changed after it was signed. What you see here is not what was signed."
+           : "This contract’s wording was changed after it was sent, so it can’t be signed. It needs to be voided and sent again."
+  }</div>`;
 }
 
 // ─── Draft editor (parent) ───────────────────────────────────────────────────
@@ -693,7 +719,7 @@ function openDraftEditor(contract, steps) {
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal()">Close</button>
       ${canActivate
-        ? `<button class="btn btn-success" onclick="activateContract('${esc(contract.id)}')">Send to ${esc(child?.name ?? "Child")}</button>`
+        ? `<button class="btn btn-success" data-testid="send-contract" onclick="activateContract('${esc(contract.id)}')">Send to ${esc(child?.name ?? "Child")}</button>`
         : `<button class="btn btn-success" disabled>Add steps to send</button>`
       }
     </div>
@@ -733,7 +759,16 @@ function whileDraft(contractId) {
 function contractSent() { return writeFailed(new Error(CONTRACT_SENT)); }
 // The editor draws a step change ahead of the hub's answer; the list carries
 // `data-saving` until the answer is in.
-function markSaving(on) { document.getElementById("draft-steps-list")?.toggleAttribute("data-saving", on); }
+// Counted, not a flag: two step writes can be in flight at once, and the
+// editor is redrawn (losing the attribute) while one still is.
+let stepWrites = 0;
+function markSaving(on) {
+  stepWrites = Math.max(0, stepWrites + (on ? 1 : -1));
+  document.getElementById("draft-steps-list")?.toggleAttribute("data-saving", stepWrites > 0);
+}
+// A signature is drawn ahead of the hub's answer too; the page carries
+// `data-signing` until the answer is in.
+function markSigning(on) { document.body.toggleAttribute("data-signing", on); }
 
 window.addStep = function(contractId, currentCount) {
   const type  = document.getElementById("ns-type").value;
@@ -753,7 +788,7 @@ window.addStep = function(contractId, currentCount) {
     whileDraft(contractId),
     { sql: `INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       params: [id, contractId, currentCount, type, title, body, contract?.child_id ?? "", contract?.created_by ?? ME.id] },
-  ]).then(() => markSaving(false), e => e.status === 409 ? contractSent() : stepWriteFailed(contractId, e));
+  ]).then(null, e => e.status === 409 ? contractSent() : stepWriteFailed(contractId, e)).finally(() => markSaving(false));
 };
 
 // A step write that did not land: the editor or walkthrough is redrawn from
@@ -763,7 +798,7 @@ async function stepWriteFailed(contractId, e) {
   const stored = await loadSteps(contractId).catch(() => null);
   if (contract && stored && modalEl) {
     if (contract.status === "draft") openDraftEditor(contract, stored);
-    else openChildWalkthrough(contract, stored);
+    else openChildWalkthrough(contract, stored, currentTermsChanged);
   }
   hubAlert(e?.message || "Couldn’t reach the hub. Try again.");
 }
@@ -781,33 +816,52 @@ window.removeStep = async function(contractId, stepId) {
       { sql: `DELETE FROM app_family_contract__contract_steps WHERE id = ? AND contract_id = ?`, params: [stepId, contractId] },
     ]);
     if (results?.[1]?.changed === 0) throw new Error("This step could not be removed.");
-    markSaving(false);
   } catch (e) {
     if (e.status === 409) return contractSent();
     await stepWriteFailed(contractId, e);
-  }
+  } finally { markSaving(false); }
 };
 
 window.activateContract = async function(contractId) {
   const contract = contracts.find(c => c.id === contractId);
   if (!contract) return;
   const child = memberMap.get(contract.child_id);
+  // A step drawn ahead of the hub's answer is not stored yet, and the
+  // fingerprint is taken from what is stored.
+  if (stepWrites > 0) return hubAlert("A step is still saving — try again in a moment.");
   if (!await hubConfirm({ message: `Send this contract to ${child?.name ?? "your child"}?`, confirmLabel: "Send" })) return;
+
+  // The wording being sent, as STORED (the editor draws a step ahead of the
+  // hub's answer): its fingerprint is what both signatures are given to.
+  let sending, hash;
+  try {
+    sending = await termsAsStored(
+      async () => DB
+        ? (await db(`SELECT title, description, updated_at FROM app_family_contract__contracts WHERE id = ?`, [contractId])).rows?.[0]
+        : contract,
+      () => loadSteps(contractId));
+    if (!sending) throw new Error("This contract could not be sent.");
+    hash = await termsHash(sending.terms);
+  } catch (e) { return writeFailed(e); }
 
   const now = new Date().toISOString();
   const idx = contracts.findIndex(c => c.id === contractId);
-  if (idx >= 0) contracts[idx] = { ...contracts[idx], status: "active", updated_at: now };
+  if (idx >= 0) contracts[idx] = { ...contracts[idx], status: "active", terms_hash: hash, updated_at: now };
   closeModal();
   render();
   try {
-    const { changed } = await db(`UPDATE app_family_contract__contracts SET status = 'active', updated_at = ? WHERE id = ? AND status = 'draft'`, [now, contractId]);
-    if (changed === 0) throw new Error("This contract could not be sent.");
+    // The stamp read before the steps: a step saved since (this draft open on
+    // another screen) has moved it, and the fingerprint above is not of the
+    // wording now stored.
+    const { changed } = await db(`UPDATE app_family_contract__contracts SET status = 'active', terms_hash = ?, updated_at = ? WHERE id = ? AND status = 'draft' AND updated_at = ?`, [hash, now, contractId, sending.stamp]);
+    if (changed === 0) throw new Error("This contract changed while it was being sent — check it and send again.");
   } catch (e) { return writeFailed(e); }
   logActivity(contractId, "activated", `${ME.name} sent the contract to ${child?.name}`);
-  notify(`New contract from ${ME.name}`, `"${contract.title}" — open Family Contract to review`);
+  notifyChild(contract, `New contract from ${ME.name}`, `"${contract.title}" — open Family Contract to review`);
 };
 
 window.voidContract = async function(contractId) {
+  if (contracts.find(c => c.id === contractId)?.status === "completed") return;
   if (!await hubConfirm({ message: "Void this contract? This cannot be undone.", confirmLabel: "Void", destructive: true })) return;
   const now = new Date().toISOString();
   const idx = contracts.findIndex(c => c.id === contractId);
@@ -815,15 +869,16 @@ window.voidContract = async function(contractId) {
   closeModal();
   render();
   try {
-    const { changed } = await db(`UPDATE app_family_contract__contracts SET status = 'voided', updated_at = ? WHERE id = ?`, [now, contractId]);
+    const { changed } = await db(`UPDATE app_family_contract__contracts SET status = 'voided', updated_at = ? WHERE id = ? AND status IN ('draft', 'active')`, [now, contractId]);
     if (changed === 0) throw new Error("This contract could not be voided.");
   } catch (e) { return writeFailed(e); }
   logActivity(contractId, "voided", `${ME.name} voided the contract`);
 };
 
 // ─── Child walkthrough ────────────────────────────────────────────────────────
-function openChildWalkthrough(contract, steps) {
+function openChildWalkthrough(contract, steps, changed = false) {
   currentContractSteps = steps;
+  currentTermsChanged = changed;
   const completedCount = steps.filter(s => s.completed_at).length;
   const total          = steps.length;
   const current        = nextIncompleteStep(steps);
@@ -848,12 +903,13 @@ function openChildWalkthrough(contract, steps) {
     <div style="font-size:.82rem;color:var(--muted);margin-bottom:10px">
       Step ${completedCount + (allDone ? 0 : 1)} of ${total}
     </div>
+    ${changed ? termsChangedHtml(contract) : ""}
     <div class="walkthrough-progress">${dotsHtml}</div>
     <div id="walkthrough-step">${stepHtml}</div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal()">Close</button>
       ${allDone
-        ? `<button class="btn btn-success" onclick="childSign('${esc(contract.id)}')">${glyph("signature")} Sign Contract</button>`
+        ? `<button class="btn btn-success" data-testid="sign-contract" onclick="childSign('${esc(contract.id)}')" ${changed ? "disabled" : ""}>${glyph("signature")} Sign Contract</button>`
         : `<button class="btn btn-primary" id="wt-continue" onclick="completeStep('${esc(contract.id)}', '${esc(current?.id ?? "")}')" disabled>Continue →</button>`
       }
     </div>
@@ -914,17 +970,33 @@ window.completeStep = async function(contractId, stepId) {
     s.id === stepId ? { ...s, completed_by: ME.id, completed_at: now, response } : s
   );
   const contract = contracts.find(c => c.id === contractId);
-  if (contract) openChildWalkthrough(contract, currentContractSteps);
+  if (contract) openChildWalkthrough(contract, currentContractSteps, currentTermsChanged);
   try {
-    const { changed } = await db(`UPDATE app_family_contract__contract_steps SET completed_by = ?, completed_at = ?, response = ? WHERE id = ? AND contract_id = ?`,
-      [ME.id, now, response, stepId, contractId]);
-    if (changed === 0) throw new Error("This step could not be saved.");
-  } catch (e) { await stepWriteFailed(contractId, e); }
+    // The first statement makes the hub check the contract is still open: a
+    // walkthrough left on screen still offers the steps of a contract that
+    // has since been voided.
+    const { results } = await dbBatch([
+      { sql: `UPDATE app_family_contract__contracts SET updated_at = ? WHERE id = ? AND status = 'active'`, params: [now, contractId], requireChanges: true },
+      { sql: `UPDATE app_family_contract__contract_steps SET completed_by = ?, completed_at = ?, response = ? WHERE id = ? AND contract_id = ?`,
+        params: [ME.id, now, response, stepId, contractId] },
+    ]);
+    if (results?.[1]?.changed === 0) throw new Error("This step could not be saved.");
+  } catch (e) {
+    if (e.status === 409) return writeFailed(new Error("This contract is no longer open."));
+    await stepWriteFailed(contractId, e);
+  }
 };
 
 window.childSign = async function(contractId) {
-  if (!await hubConfirm({ message: "Sign this contract? This means you agree to everything in it.", confirmLabel: "Sign" })) return;
   const contract = contracts.find(c => c.id === contractId);
+  // Signed only while it is open, and only once every step shown is done.
+  if (!contract || contract.status !== "active" || contract.child_agreed || !stepsComplete(currentContractSteps)) return;
+  if (!await hubConfirm({ message: "Sign this contract? This means you agree to everything in it.", confirmLabel: "Sign" })) return;
+  // The wording this screen showed. The hub takes the signature only if it is
+  // the wording that was sent.
+  let shown;
+  try { shown = shownTerms(contract, await termsHash(contractTerms(contract, currentContractSteps))); }
+  catch (e) { return writeFailed(e); }
   const now = new Date().toISOString();
   const idx = contracts.findIndex(c => c.id === contractId);
   if (idx >= 0) contracts[idx] = { ...contracts[idx], child_agreed: true, child_signed_at: now, updated_at: now };
@@ -933,22 +1005,24 @@ window.childSign = async function(contractId) {
   // The child's agreement is recorded ONLY through the endpoint_only agreement table
   // (api/agree maps the caller to child_agreed); child_signed_at is just a display
   // timestamp on the party-writable contracts row.
-  try { await agree("contract_agreements", contractId, true); }
+  markSigning(true);
+  try { await agree("contract_agreements", contractId, true, shown); }
   catch (e) { return writeFailed(e); }
+  finally { markSigning(false); }
   db(`UPDATE app_family_contract__contracts SET child_signed_at = ?, updated_at = ? WHERE id = ?`, [now, now, contractId]).catch(() => {});
   logActivity(contractId, "child_signed", `${ME.name} signed the contract`);
-  notify(`${ME.name} signed the contract`, `"${contract?.title}" is ready for your countersignature`);
 };
 
 // ─── Contract view (read-only / parent countersign) ───────────────────────────
-function openContractView(contract, steps) {
+function openContractView(contract, steps, changed = false) {
+  currentContractSteps = steps;
   const child    = memberMap.get(contract.child_id);
   const creator  = memberMap.get(contract.created_by);
   const signer   = contract.parent_signed_by ? memberMap.get(contract.parent_signed_by) : null;
   const meIsAdult = isAdult(ME);
   // Only the creating parent can countersign: api/agree maps created_by -> parent_agreed,
   // so a different adult's agree call would be rejected as a non-participant.
-  const canCountersign = !!contract.child_agreed && contract.status === "active" && ME.id === contract.created_by;
+  const canCountersign = !!contract.child_agreed && contract.status === "active" && ME.id === contract.created_by && !changed;
   const canVoid = (contract.status === "active") && meIsAdult;
 
   const stepsHtml = steps.map(s => {
@@ -999,6 +1073,7 @@ function openContractView(contract, steps) {
       ${statusHtml(contract.status)}
       <span style="font-size:.82rem;color:var(--muted)">For ${esc(child?.name ?? "?")}</span>
     </div>
+    ${changed ? termsChangedHtml(contract) : ""}
     ${contract.description ? `<p style="font-size:.88rem;color:var(--muted);margin-bottom:12px">${esc(contract.description)}</p>` : ""}
 
     <div class="detail-label">Steps</div>
@@ -1009,28 +1084,37 @@ function openContractView(contract, steps) {
     <div class="modal-actions">
       ${canVoid ? `<button class="btn btn-ghost btn-sm" data-testid="void-btn" data-contract-id="${esc(contract.id)}" style="color:var(--red);border-color:var(--red)" onclick="voidContract('${esc(contract.id)}')">Void</button>` : ""}
       <button class="btn btn-ghost" onclick="closeModal()">Close</button>
-      ${canCountersign ? `<button class="btn btn-success" onclick="parentCountersign('${esc(contract.id)}')">${glyph("signature")} Countersign</button>` : ""}
+      ${canCountersign ? `<button class="btn btn-success" data-testid="countersign" onclick="parentCountersign('${esc(contract.id)}')">${glyph("signature")} Countersign</button>` : ""}
     </div>
   `);
 }
 
 window.parentCountersign = async function(contractId) {
-  if (!await hubConfirm({ message: "Countersign this contract? Both parties will be bound by it.", confirmLabel: "Countersign" })) return;
   const contract = contracts.find(c => c.id === contractId);
+  if (!contract || contract.status !== "active") return;
+  if (!await hubConfirm({ message: "Countersign this contract? Both parties will be bound by it.", confirmLabel: "Countersign" })) return;
+  let shown;
+  try { shown = shownTerms(contract, await termsHash(contractTerms(contract, currentContractSteps))); }
+  catch (e) { return writeFailed(e); }
   const now = new Date().toISOString();
   const idx = contracts.findIndex(c => c.id === contractId);
   if (idx >= 0) contracts[idx] = { ...contracts[idx], status: "completed", parent_agreed: true, parent_signed_by: ME.id, parent_signed_at: now, updated_at: now };
   closeModal();
   render();
   // The countersignature (and the lock that derives 'completed') happens server-side
-  // in api/agree once both flags are set — we do NOT write status='completed' to the
-  // party-writable contracts row. parent_signed_by/at are display-only.
-  try { await agree("contract_agreements", contractId, true); }
+  // in api/agree once both flags are set. Nothing the page reads as the lock is
+  // on the party-writable contracts row; parent_signed_by/at are display-only.
+  markSigning(true);
+  try { await agree("contract_agreements", contractId, true, shown); }
   catch (e) { return writeFailed(e); }
-  db(`UPDATE app_family_contract__contracts SET parent_signed_by = ?, parent_signed_at = ?, updated_at = ? WHERE id = ?`,
+  finally { markSigning(false); }
+  // The lock itself is the agreement row's. The stored status follows it so
+  // the guards the hub checks on this row (void, completing a step) stop
+  // matching a contract both have signed; the page never reads it as the lock.
+  db(`UPDATE app_family_contract__contracts SET status = 'completed', parent_signed_by = ?, parent_signed_at = ?, updated_at = ? WHERE id = ? AND status = 'active'`,
     [ME.id, now, now, contractId]).catch(() => {});
   logActivity(contractId, "completed", `${ME.name} countersigned — contract is complete`);
-  notify(`Contract complete!`, `"${contract?.title}" has been signed by both parties`);
+  notifyChild(contract, `Contract complete!`, `"${contract?.title}" has been signed by both parties`);
 };
 
 // ─── Render ───────────────────────────────────────────────────────────────────

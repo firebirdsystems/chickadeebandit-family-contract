@@ -376,6 +376,98 @@
           "count": 1
         }
       ]
+    },
+    {
+      "name": "a contract is signed by both sides to the wording that was sent, and says so if that wording is changed afterwards",
+      "members": {"parent": "adult", "kid": "child"},
+      "steps": [
+        {"action": "seedRaw", "sql": "INSERT INTO app_family_contract__contracts (id, title, child_id, created_by, status, created_at, updated_at) VALUES ('fc-g', ?, ?, ?, 'draft', '2026-08-01T09:00:00Z', '2026-08-01T09:00:00Z')", "params": ["Guitar lessons", "{{kid}}", "{{parent}}"]},
+        {"action": "seedRaw", "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES ('fc-g-s1', 'fc-g', 0, 'acknowledge', ?, ?, ?, ?)", "params": ["Practice every day", "Twenty minutes", "{{kid}}", "{{parent}}"]},
+        {"action": "open", "as": "parent"},
+        {"action": "click", "as": "parent", "selector": "[data-testid=\"contract-card\"][data-contract-id=\"fc-g\"]"},
+        {"action": "expectVisible", "as": "parent", "selector": "[data-testid=\"draft-editor\"][data-contract-id=\"fc-g\"]"},
+        {"action": "click", "as": "parent", "selector": "[data-testid=\"send-contract\"]"},
+        {"action": "dialog", "as": "parent", "answer": "accept"},
+        {"action": "expectHidden", "as": "parent", "selector": "[data-testid=\"modal\"]"},
+        {"action": "open", "as": "kid"},
+        {"action": "click", "as": "kid", "selector": "[data-testid=\"contract-card\"][data-contract-id=\"fc-g\"]"},
+        {"action": "expectVisible", "as": "kid", "selector": "[data-testid=\"child-walkthrough\"][data-contract-id=\"fc-g\"]"},
+        {"action": "expectCount", "as": "kid", "selector": "[data-testid=\"terms-changed\"]", "count": 0},
+        {"action": "click", "as": "kid", "selector": "#wt-check"},
+        {"action": "click", "as": "kid", "selector": "#wt-continue"},
+        {"action": "click", "as": "kid", "selector": "[data-testid=\"sign-contract\"]"},
+        {"action": "dialog", "as": "kid", "answer": "accept", "text": "Sign this contract? This means you agree to everything in it."},
+        {"action": "expectHidden", "as": "kid", "selector": "[data-testid=\"modal\"]"},
+        {"action": "waitFor", "as": "kid", "selector": "body[data-signing]", "state": "detached"},
+        {"action": "reload", "as": "parent"},
+        {"action": "click", "as": "parent", "selector": "[data-testid=\"contract-card\"][data-contract-id=\"fc-g\"]"},
+        {"action": "expectVisible", "as": "parent", "selector": "[data-testid=\"contract-view\"][data-contract-id=\"fc-g\"]"},
+        {"action": "expectCount", "as": "parent", "selector": "[data-testid=\"terms-changed\"]", "count": 0},
+        {"action": "click", "as": "parent", "selector": "[data-testid=\"countersign\"]"},
+        {"action": "dialog", "as": "parent", "answer": "accept", "text": "Countersign this contract? Both parties will be bound by it."},
+        {"action": "expectHidden", "as": "parent", "selector": "[data-testid=\"modal\"]"},
+        {"action": "waitFor", "as": "parent", "selector": "body[data-signing]", "state": "detached"},
+        {"action": "reload", "as": "parent"},
+        {"action": "click", "as": "parent", "selector": ".tabs .tab:nth-child(2)"},
+        {"action": "click", "as": "parent", "selector": "[data-testid=\"contract-card\"][data-contract-id=\"fc-g\"]"},
+        {"action": "expectText", "as": "parent", "selector": "[data-testid=\"modal\"]", "text": "Countersigned by parent"},
+        {"action": "expectCount", "as": "parent", "selector": "[data-testid=\"terms-changed\"]", "count": 0},
+        {"action": "seedRaw", "sql": "UPDATE app_family_contract__contract_steps SET title = ? WHERE id = 'fc-g-s1'", "params": ["Practice when I feel like it"]},
+        {"action": "reload", "as": "kid"},
+        {"action": "click", "as": "kid", "selector": ".tabs .tab:nth-child(2)"},
+        {"action": "click", "as": "kid", "selector": "[data-testid=\"contract-card\"][data-contract-id=\"fc-g\"]"},
+        {"action": "expectText", "as": "kid", "selector": "[data-testid=\"terms-changed\"]", "text": "changed after it was signed"}
+      ]
+    },
+    {
+      "name": "a contract whose wording was changed after it was sent cannot be signed",
+      "members": {"parent": "adult", "kid": "child"},
+      "steps": [
+        {"action": "seedRaw", "sql": "INSERT INTO app_family_contract__contracts (id, title, child_id, created_by, status, created_at, updated_at) VALUES ('fc-h', ?, ?, ?, 'draft', '2026-08-01T09:00:00Z', '2026-08-01T09:00:00Z')", "params": ["A hamster", "{{kid}}", "{{parent}}"]},
+        {"action": "seedRaw", "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES ('fc-h-s1', 'fc-h', 0, 'acknowledge', ?, ?, ?, ?)", "params": ["Practice every day", "Twenty minutes", "{{kid}}", "{{parent}}"]},
+        {"action": "open", "as": "parent"},
+        {"action": "click", "as": "parent", "selector": "[data-testid=\"contract-card\"][data-contract-id=\"fc-h\"]"},
+        {"action": "expectVisible", "as": "parent", "selector": "[data-testid=\"draft-editor\"][data-contract-id=\"fc-h\"]"},
+        {"action": "click", "as": "parent", "selector": "[data-testid=\"send-contract\"]"},
+        {"action": "dialog", "as": "parent", "answer": "accept"},
+        {"action": "expectHidden", "as": "parent", "selector": "[data-testid=\"modal\"]"},
+        {"action": "seedRaw", "sql": "UPDATE app_family_contract__contract_steps SET body = ? WHERE id = 'fc-h-s1'", "params": ["Five minutes"]},
+        {"action": "open", "as": "kid"},
+        {"action": "click", "as": "kid", "selector": "[data-testid=\"contract-card\"][data-contract-id=\"fc-h\"]"},
+        {"action": "expectVisible", "as": "kid", "selector": "[data-testid=\"child-walkthrough\"][data-contract-id=\"fc-h\"]"},
+        {"action": "expectText", "as": "kid", "selector": "[data-testid=\"terms-changed\"]", "text": "can’t be signed"},
+        {"action": "click", "as": "kid", "selector": "#wt-check"},
+        {"action": "click", "as": "kid", "selector": "#wt-continue"},
+        {"action": "expectVisible", "as": "kid", "selector": "[data-testid=\"sign-contract\"][disabled]"}
+      ]
+    },
+    {
+      "name": "the hub refuses a signature given to wording that is not the wording on record",
+      "expectsRefusedWrite": true,
+      "members": {"parent": "adult", "kid": "child"},
+      "steps": [
+        {"action": "seedRaw", "sql": "INSERT INTO app_family_contract__contracts (id, title, child_id, created_by, status, created_at, updated_at) VALUES ('fc-r', ?, ?, ?, 'draft', '2026-08-01T09:00:00Z', '2026-08-01T09:00:00Z')", "params": ["A rabbit", "{{kid}}", "{{parent}}"]},
+        {"action": "seedRaw", "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES ('fc-r-s1', 'fc-r', 0, 'acknowledge', ?, ?, ?, ?)", "params": ["Clean the hutch", "Every Saturday", "{{kid}}", "{{parent}}"]},
+        {"action": "open", "as": "parent"},
+        {"action": "click", "as": "parent", "selector": "[data-testid=\"contract-card\"][data-contract-id=\"fc-r\"]"},
+        {"action": "click", "as": "parent", "selector": "[data-testid=\"send-contract\"]"},
+        {"action": "dialog", "as": "parent", "answer": "accept"},
+        {"action": "expectHidden", "as": "parent", "selector": "[data-testid=\"modal\"]"},
+        {"action": "open", "as": "kid"},
+        {"action": "click", "as": "kid", "selector": "[data-testid=\"contract-card\"][data-contract-id=\"fc-r\"]"},
+        {"action": "expectVisible", "as": "kid", "selector": "[data-testid=\"child-walkthrough\"][data-contract-id=\"fc-r\"]"},
+        {"action": "expectCount", "as": "kid", "selector": "[data-testid=\"terms-changed\"]", "count": 0},
+        {"action": "seedRaw", "sql": "UPDATE app_family_contract__contracts SET terms_hash = 'the-fingerprint-of-other-wording' WHERE id = 'fc-r'"},
+        {"action": "click", "as": "kid", "selector": "#wt-check"},
+        {"action": "click", "as": "kid", "selector": "#wt-continue"},
+        {"action": "click", "as": "kid", "selector": "[data-testid=\"sign-contract\"]"},
+        {"action": "dialog", "as": "kid", "answer": "accept", "text": "Sign this contract? This means you agree to everything in it."},
+        {"action": "dialog", "as": "kid", "answer": "accept", "text": "The agreement terms changed — review them again before agreeing"},
+        {"action": "reload", "as": "parent"},
+        {"action": "click", "as": "parent", "selector": "[data-testid=\"contract-card\"][data-contract-id=\"fc-r\"]"},
+        {"action": "expectVisible", "as": "parent", "selector": "[data-testid=\"contract-view\"][data-contract-id=\"fc-r\"]"},
+        {"action": "expectCount", "as": "parent", "selector": "[data-testid=\"countersign\"]", "count": 0}
+      ]
     }
   ]
 }
