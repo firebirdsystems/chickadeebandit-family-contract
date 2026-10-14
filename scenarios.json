@@ -165,6 +165,31 @@
         {"action": "db", "as": "parent", "sql": "SELECT title, status, terms_hash FROM app_family_contract__contracts WHERE id = 'c1'", "expect": {"status": 200, "rowCount": 1, "rowsContain": [{"title": "A dog", "status": "active", "terms_hash": "sent-fingerprint"}]}},
         {"action": "db", "as": "parent", "sql": "SELECT body, response, completed_by FROM app_family_contract__contract_steps WHERE id = 's1'", "expect": {"status": 200, "rowCount": 1, "rowsContain": [{"body": "Every morning", "response": "I will", "completed_by": "scn-child"}]}}
       ]
+    },
+    {
+      "name": "once both have signed, neither party can delete, reword, void or add to the contract or its steps, while a draft's step can still be removed",
+      "members": {"parent": "adult", "child": "child"},
+      "steps": [
+        {"action": "seedRaw", "sql": "INSERT INTO app_family_contract__contracts (id, title, child_id, created_by, status, terms_hash, created_at, updated_at) VALUES ('lk1', 'A dog', ?, ?, 'active', 'sent-fingerprint', '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')", "params": ["{{child}}", "{{parent}}"]},
+        {"action": "seedRaw", "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by, completed_by, completed_at, response) VALUES ('lks1', 'lk1', 0, 'commit', 'Walks', 'Every morning', ?, ?, ?, '2026-01-02T00:00:00Z', 'I will')", "params": ["{{child}}", "{{parent}}", "{{child}}"]},
+        {"action": "seedRaw", "sql": "INSERT INTO app_family_contract__contract_agreements (id, child_id, created_by, child_agreed, parent_agreed, status, locked_at, updated_at) VALUES ('lk1', ?, ?, 1, 1, 'locked', '2026-01-03T00:00:00Z', '2026-01-03T00:00:00Z')", "params": ["{{child}}", "{{parent}}"]},
+        {"action": "seedRaw", "sql": "INSERT INTO app_family_contract__contracts (id, title, child_id, created_by, status, created_at, updated_at) VALUES ('dr1', 'Draft', ?, ?, 'draft', '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')", "params": ["{{child}}", "{{parent}}"]},
+        {"action": "seedRaw", "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES ('drs1', 'dr1', 0, 'clause', 'Feed it', 'Twice a day', ?, ?)", "params": ["{{child}}", "{{parent}}"]},
+        {"action": "batch", "as": "parent", "statements": [{"sql": "DELETE FROM app_family_contract__contract_steps WHERE id = ?", "params": ["lks1"]}], "expect": {"status": 200, "changed": [0]}},
+        {"action": "batch", "as": "child", "statements": [{"sql": "DELETE FROM app_family_contract__contract_steps WHERE id = ?", "params": ["lks1"]}], "expect": {"status": 200, "changed": [0]}},
+        {"action": "batch", "as": "parent", "statements": [{"sql": "DELETE FROM app_family_contract__contracts WHERE id = ?", "params": ["lk1"]}], "expect": {"status": 200, "changed": [0]}},
+        {"action": "batch", "as": "child", "statements": [{"sql": "DELETE FROM app_family_contract__contracts WHERE id = ?", "params": ["lk1"]}], "expect": {"status": 200, "changed": [0]}},
+        {"action": "batch", "as": "parent", "statements": [{"sql": "UPDATE app_family_contract__contracts SET title = 'A pony' WHERE id = ?", "params": ["lk1"]}], "expect": {"status": 200, "changed": [0]}},
+        {"action": "batch", "as": "parent", "statements": [{"sql": "UPDATE app_family_contract__contract_steps SET body = 'When I feel like it' WHERE id = ?", "params": ["lks1"]}], "expect": {"status": 200, "changed": [0]}},
+        {"action": "batch", "as": "parent", "statements": [{"sql": "UPDATE app_family_contract__contracts SET status = 'voided', updated_at = ? WHERE id = ? AND status IN ('draft', 'active')", "params": ["2026-01-04T00:00:00Z", "lk1"]}], "expect": {"status": 200, "changed": [0]}},
+        {"action": "batch", "as": "child", "statements": [{"sql": "UPDATE app_family_contract__contracts SET child_signed_at = ? WHERE id = ?", "params": ["2026-01-04T00:00:00Z", "lk1"]}], "expect": {"status": 200, "changed": [0]}},
+        {"action": "batch", "as": "child", "statements": [{"sql": "UPDATE app_family_contract__contract_steps SET response = 'Sometimes' WHERE id = ?", "params": ["lks1"]}], "expect": {"status": 200, "changed": [0]}},
+        {"action": "db", "as": "parent", "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, body, child_id, created_by) VALUES ('lks2', 'lk1', 1, 'other', 'Pocket money', 'Halve it', ?, ?)", "params": ["{{child}}", "{{parent}}"], "expect": {"status": 403, "errorIncludes": "frozen"}},
+        {"action": "db", "as": "parent", "sql": "SELECT title, status FROM app_family_contract__contracts WHERE id = 'lk1'", "expect": {"status": 200, "rowCount": 1, "rowsContain": [{"title": "A dog", "status": "active"}]}},
+        {"action": "db", "as": "parent", "sql": "SELECT body, response FROM app_family_contract__contract_steps WHERE contract_id = 'lk1'", "expect": {"status": 200, "rowCount": 1, "rowsContain": [{"body": "Every morning", "response": "I will"}]}},
+        {"action": "batch", "as": "parent", "statements": [{"sql": "UPDATE app_family_contract__contracts SET updated_at = ? WHERE id = ? AND status = 'draft'", "params": ["2026-01-04T00:00:00Z", "dr1"], "requireChanges": true}, {"sql": "DELETE FROM app_family_contract__contract_steps WHERE id = ? AND contract_id = ?", "params": ["drs1", "dr1"]}], "expect": {"status": 200, "changed": [1, 1]}},
+        {"action": "db", "as": "parent", "sql": "SELECT id FROM app_family_contract__contract_steps WHERE contract_id = 'dr1'", "expect": {"status": 200, "rowCount": 0}}
+      ]
     }
   ]
 }

@@ -1018,7 +1018,6 @@ function openContractView(contract, steps, changed = false) {
   currentContractSteps = steps;
   const child    = memberMap.get(contract.child_id);
   const creator  = memberMap.get(contract.created_by);
-  const signer   = contract.parent_signed_by ? memberMap.get(contract.parent_signed_by) : null;
   const meIsAdult = isAdult(ME);
   // Only the creating parent can countersign: api/agree maps created_by -> parent_agreed,
   // so a different adult's agree call would be rejected as a non-participant.
@@ -1041,6 +1040,9 @@ function openContractView(contract, steps, changed = false) {
     `;
   }).join("");
 
+  // The countersignature is the creating parent's (api/agree seats created_by
+  // as parent_agreed), and it is what locks the agreement row: its lock time is
+  // the countersignature's time. Both come from the agreement, not this row.
   const sigBlock = contract.status === "completed"
     ? `<div class="detail-section">
         <div class="sig-block signed">
@@ -1050,8 +1052,8 @@ function openContractView(contract, steps, changed = false) {
         </div>
         <div class="sig-block signed" style="margin-top:8px">
           <div class="sig-label">Countersigned by parent</div>
-          <div class="sig-name">${esc(signer?.name ?? "?")}</div>
-          <div class="sig-date">${formatDate(contract.parent_signed_at)}</div>
+          <div class="sig-name">${esc(creator?.name ?? "?")}</div>
+          <div class="sig-date">${formatDate(contract.locked_at)}</div>
         </div>
        </div>`
     : contract.child_agreed
@@ -1098,21 +1100,19 @@ window.parentCountersign = async function(contractId) {
   catch (e) { return writeFailed(e); }
   const now = new Date().toISOString();
   const idx = contracts.findIndex(c => c.id === contractId);
-  if (idx >= 0) contracts[idx] = { ...contracts[idx], status: "completed", parent_agreed: true, parent_signed_by: ME.id, parent_signed_at: now, updated_at: now };
+  if (idx >= 0) contracts[idx] = { ...contracts[idx], status: "completed", parent_agreed: true, locked_at: now, updated_at: now };
   closeModal();
   render();
   // The countersignature (and the lock that derives 'completed') happens server-side
   // in api/agree once both flags are set. Nothing the page reads as the lock is
-  // on the party-writable contracts row; parent_signed_by/at are display-only.
+  // on the party-writable contracts row.
   markSigning(true);
   try { await agree("contract_agreements", contractId, true, shown); }
   catch (e) { return writeFailed(e); }
   finally { markSigning(false); }
-  // The lock itself is the agreement row's. The stored status follows it so
-  // the guards the hub checks on this row (void, completing a step) stop
-  // matching a contract both have signed; the page never reads it as the lock.
-  db(`UPDATE app_family_contract__contracts SET status = 'completed', parent_signed_by = ?, parent_signed_at = ?, updated_at = ? WHERE id = ? AND status = 'active'`,
-    [ME.id, now, now, contractId]).catch(() => {});
+  // Nothing follows on the contracts row: once the agreement locks, the
+  // manifest's frozen_when freezes the contract and its steps (no UPDATE or
+  // DELETE lands), which is also what stops voiding or completing a step.
   logActivity(contractId, "completed", `${ME.name} countersigned — contract is complete`);
   notifyChild(contract, `Contract complete!`, `"${contract?.title}" has been signed by both parties`);
 };
