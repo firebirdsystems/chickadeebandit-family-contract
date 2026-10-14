@@ -150,9 +150,6 @@
     ]
   },
   "nav": { "label": "Contracts" },
-  "resource_limits": {
-    "max_db_bytes": 52428800
-  },
   "icon": "📋",
   "preload": {
     "contracts": {
