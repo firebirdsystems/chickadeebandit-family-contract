@@ -190,6 +190,17 @@
         {"action": "batch", "as": "parent", "statements": [{"sql": "UPDATE app_family_contract__contracts SET updated_at = ? WHERE id = ? AND status = 'draft'", "params": ["2026-01-04T00:00:00Z", "dr1"], "requireChanges": true}, {"sql": "DELETE FROM app_family_contract__contract_steps WHERE id = ? AND contract_id = ?", "params": ["drs1", "dr1"]}], "expect": {"status": 200, "changed": [1, 1]}},
         {"action": "db", "as": "parent", "sql": "SELECT id FROM app_family_contract__contract_steps WHERE contract_id = 'dr1'", "expect": {"status": 200, "rowCount": 0}}
       ]
+    },
+    {
+      "name": "only the parent who wrote a contract deletes it or its steps; the child party cannot (delete_owner_only)",
+      "members": {"parent": "adult", "child": "child"},
+      "steps": [
+        {"action": "seedRaw", "sql": "INSERT INTO app_family_contract__contracts (id, title, child_id, created_by, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)", "params": ["c-del", "Screen time", "{{child}}", "{{parent}}", "draft", "2026-01-01T00:00:00Z", "2026-01-01T00:00:00Z"]},
+        {"action": "seedRaw", "sql": "INSERT INTO app_family_contract__contract_steps (id, contract_id, position, type, title, child_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)", "params": ["s-del", "c-del", 0, "clause", "No phones at dinner", "{{child}}", "{{parent}}"]},
+        {"action": "batch", "as": "child", "statements": [{"sql": "DELETE FROM app_family_contract__contract_steps WHERE id = ?", "params": ["s-del"]}, {"sql": "DELETE FROM app_family_contract__contracts WHERE id = ?", "params": ["c-del"]}], "expect": {"status": 200, "changed": [0, 0]}},
+        {"action": "db", "as": "child", "sql": "SELECT id FROM app_family_contract__contract_steps WHERE id = ?", "params": ["s-del"], "expect": {"status": 200, "rowCount": 1}},
+        {"action": "batch", "as": "parent", "statements": [{"sql": "DELETE FROM app_family_contract__contract_steps WHERE id = ?", "params": ["s-del"]}], "expect": {"status": 200, "changed": [1]}}
+      ]
     }
   ]
 }

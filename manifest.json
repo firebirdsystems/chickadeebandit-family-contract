@@ -43,6 +43,7 @@
       "kind": "party_scoped",
       "member_columns": ["child_id", "created_by"],
       "self_column": "created_by",
+      "delete_owner_only": true,
       "frozen_when": { "parent_table": "contract_agreements", "fk_column": "id", "status_column": "status", "locked_values": ["locked"] },
       "column_write_acls": {
         "id": { "writable_by": [], "actions": ["update"] },
@@ -61,6 +62,7 @@
       "kind": "party_scoped",
       "member_columns": ["child_id", "created_by"],
       "self_column": "created_by",
+      "delete_owner_only": true,
       "frozen_when": { "parent_table": "contract_agreements", "fk_column": "contract_id", "status_column": "status", "locked_values": ["locked"] },
       "column_write_acls": {
         "id": { "writable_by": [], "actions": ["update"] },
